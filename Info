@@ -1,0 +1,14 @@
+ - int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+    >> AF_INET => Address Family - IPv4 in this case, indicating that the socket will use IPv4 addresses.
+    >> SOCK_STREAM => Socket Type - TCP (stream-oriented socket) in this case, indicating that the socket will be used for TCP connections .
+    >> 0 => Protocol - 0 in this case lets the system choose the appropriate protocol for the specified socket type and address family (TCP in this case).
+- struct sockaddr_in serverAddr;
+    std::memset(&serverAddr, 0, sizeof(serverAddr)); // initialize struct 
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_port = htons(port);
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+
+ >> sockaddr_in serverAddr : which is a structure used to store socket address information for IPv4.
+ >> serverAddr.sin_family = AF_INET => This line sets the address family for the socket to IPv4. 
+ >> htons(port) => is a function used to convert the port number from host byte order to network byte.
+ >> serverAddr.sin_addr.s_addr = INADDR_ANY => which means the socket will accept connections on any available network interface or IP address on the machine.
