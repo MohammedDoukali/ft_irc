@@ -25,7 +25,7 @@ struct glob
 
     public:
         int socket;
-
+        bool password;
         std::string nickname;
         std::string username;
 };
@@ -33,6 +33,7 @@ struct glob
 class Channel{
     public:
     std::vector<int> clients_sockest;
+    std::string name;
 
 };
 
@@ -40,4 +41,9 @@ void ft_error(int ind, const std::string &str);
 int countWords(const std::string& str);
 void remove_spaces(std::string& str);
 std::vector<std::string> split_str(std::string str, char sep);
-int countWords(const std::string& str);
+// int checkArg(const std::string str, int clientSocket);
+void errorUser(const std::string& msg, int clientSocket);
+int checkArg(const std::vector<std::string> &arg, int clientSocket);
+void sendUser(const std::string& msg, int clientSocket);
+int searchByUsername(const std::string& target, const Client* clients, int numClients);
+int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels);
