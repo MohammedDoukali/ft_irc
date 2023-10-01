@@ -1,103 +1,111 @@
-#include <iostream>
-#include <cstdlib>
-#include <cstring>
-#include <string>
-#include <sstream>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <cerrno>
-#include <vector>
 #include "lib.hpp"
 
-const int MAX_CLIENTS = 10;
+Channel channels[MAX_CHANNELS];
+Client clients[MAX_CLIENTS];
 
 int  check_port(std::string str)
 {
     int port;
     std::istringstream nm(str);
-    if (nm >> port && nm.eof())
-    {
-      if (port < 1024 || port > 65535)
-      {
-        std::cerr << "Error: Port Number Must Be An Integer Between 1024 And 65535." << std::endl;
-        exit(0);
-      }
-    }
-    else
-    {
-        std::cerr << "Error : The Port Must Be Integer Value !!" << std::endl;
-        exit(0);
-    }
+    if (nm >> port && nm.eof() && (port < 1024 || port > 65535))
+        ft_error(0, "Port Number Must Be An Integer Between 1024 And 65535.");
+    else if (!nm.eof())
+        ft_error(0,"The Port Must Be Integer Value !!");
     return port;
 }
 
 void connect_server_client(glob *stru)
 {
-    int clientSocket,maxSocketDescriptor;
-    char buffer[1024];
-    std::vector<int> clientSockets(MAX_CLIENTS, 0);
-    fd_set readfds;
+    int max_fds_socket;
+    char buffer[MAX_BUFFER_SIZE];
+    int chan_indx = 0;
 
-    maxSocketDescriptor = stru->serverSocket;
+    for(int i = 0;i < MAX_CLIENTS;++i)
+    {
+        clients[i].socket = -1;
+    }
+    fd_set readfds;
+    max_fds_socket = stru->serverSocket;
 
     while (true) {
     FD_ZERO(&readfds);
     FD_SET(stru->serverSocket, &readfds);
+
     // Add child sockets to set
-    for (size_t i = 0; i < clientSockets.size(); ++i) {
-        if (clientSockets[i] > 0)
-            FD_SET(clientSockets[i], &readfds);
-        if (clientSockets[i] > maxSocketDescriptor)
-            maxSocketDescriptor = clientSockets[i];
+    for (int i = 0; i < MAX_CLIENTS; ++i) {
+         if (clients[i].socket != -1)
+           {
+            FD_SET(clients[i].socket, &readfds);
+			max_fds_socket = std::max(max_fds_socket, clients[i].socket);
+           }
     }
     
     // Wait for activity on one of the sockets
-    int activity = select(maxSocketDescriptor + 1, &readfds, NULL, NULL, NULL);
-    if ((activity < 0) && (errno != EINTR)) {
-        std::cerr << "Select error...\n";
-        exit(EXIT_FAILURE);
-    }
-        // If something happened on the server socket, then it's an incoming connection
-    if (FD_ISSET(stru->serverSocket, &readfds)) {
-        clientSocket = accept(stru->serverSocket, NULL, NULL);
-        if (clientSocket < 0) {
-            std::cerr << "Acceptance failed...\n";
-            exit(EXIT_FAILURE);
+    int activity = select(max_fds_socket + 1, &readfds, NULL, NULL, NULL);
+    if ((activity < 0))
+        ft_error(0,"Select Failed");
+
+    // If something happened on the server socket, then it's an incoming connection
+    if (FD_ISSET(stru->serverSocket, &readfds))
+    {
+        struct sockaddr_in cl_addr;
+        socklen_t cl_addr_len = sizeof(cl_addr);
+		int clientSocket = accept(stru->serverSocket, (struct sockaddr*)&cl_addr, &cl_addr_len);
+        if (clientSocket  < 0)
+            ft_error(0,"Accept Connection Failed");
+        
+        int ind = -1;
+		for (int i = 0; i < MAX_CLIENTS; ++i) {
+			if (clients[i].socket == -1) {
+				ind = i;
+				break;
+			}
+		}
+
+        if (ind == -1){
+		    close(clientSocket);
+		    std::cout << "Rejected new connection: Too many clients" << std::endl;
         }
-        std::cout << "New client connected.\n";
+        else
+        {
+			clients[ind].socket = clientSocket;
+			std::cout << "New client connected: " << inet_ntoa(cl_addr.sin_addr) << std::endl;
+    		max_fds_socket = std::max(max_fds_socket, clientSocket);
+        }
     
-        // Add the new client socket to the vector
-        for (size_t i = 0; i < clientSockets.size(); ++i) {
-            if (clientSockets[i] == 0) {
-                clientSockets[i] = clientSocket;
-                break;
-            }
-        }
     }
         
-    // Check each client for activity
-    for (size_t i = 0; i < clientSockets.size(); ++i) {
-        clientSocket = clientSockets[i];
-        if (FD_ISSET(clientSocket, &readfds)) {
-            int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
-            if (bytesRead > 0) {
-                buffer[bytesRead] = '\0';  // Null-terminate the received data
-                std::cout << "Message from client " << i << ": " << buffer << "\n";
-            } else if (bytesRead == 0) {
-                std::cout << "Client " << i << " disconnected.\n";
-                close(clientSocket);
-                clientSockets[i] = 0;
-            } else {
-                std::cerr << "Error in recv from client " << i << ".\n";
-                close(clientSocket);
-                clientSockets[i] = 0;
-            }
+   //Check each client for activity
+    for (size_t i = 0; i < MAX_CLIENTS; ++i) {
+    int clientSocket = clients[i].socket;
+    if (FD_ISSET(clientSocket, &readfds)) {
+        int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead > 0) {
+            buffer[bytesRead] = '\0';
+            std::string message(buffer); 
+            // std::cout << "Message from client " << i << ": " << std::string(buffer, bytesRead) << "\n";
+            remove_spaces(message);
+            std::cout << "Message from clientt " << i << ": " << message << "\n";
+            std::vector<std::string> args = split_str(message, ' ');
+            // Send a response to the client
+            std::string response = "Hello, client! Your message was received.\n";
+            int bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+            if (bytesSent < 0)
+                std::cerr << "Error in sending response to client " << i << ".\n";
+        } else if (bytesRead == 0) {
+            std::cout << "Client " << i << " disconnected.\n";
+            close(clientSocket);
+            clients[i].socket = 0;
+        } else {
+            std::cerr << "Error in recv from client " << i << ".\n";
+            close(clientSocket);
+            clients[i].socket = 0;
         }
     }
-    }
 }
+ }
+}
+
 void setup_socket(int port, glob *stru)
 {
         // Create A socket //
@@ -105,10 +113,7 @@ void setup_socket(int port, glob *stru)
     stru->serverSocket = serverSocket;
         
     if (serverSocket == -1)
-    {
-        std::cerr << "Failed to create socket\n";
-        exit(EXIT_FAILURE);
-    }
+        ft_error(0,"Failed to create socket !!");
 
         // Configure Server Adress //
     struct sockaddr_in serverAddr;
@@ -117,17 +122,12 @@ void setup_socket(int port, glob *stru)
     serverAddr.sin_port = htons(port);
     serverAddr.sin_addr.s_addr = INADDR_ANY;
 
-        // Bind The Socket
-    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1){
-    std::cerr << "Binding failed\n";
-    exit(EXIT_FAILURE);}
+    if (bind(serverSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) == -1)
+        ft_error(0,"Binding failed\n");
 
-        // Listen for Connections
-    const int BACKLOG = 10;  // Maximum number of pending connections
-    if (listen(serverSocket, BACKLOG) == -1) {
-        close(serverSocket);
-    std::cerr << "Listen failed\n";
-    exit(EXIT_FAILURE);}
+    if (listen(serverSocket, SOMAXCONN) == -1)
+        ft_error(0,"Listen failed\n");
+
     std::cout << "Server listening.. On Port " << port << std::endl;
 
     stru->serverAddr = serverAddr;
@@ -138,6 +138,7 @@ int main(int ac, char **av)
     if (ac == 3)
     {
        int port = check_port(av[1]);
+       str.password = av[2];
        setup_socket(port,&str);
        connect_server_client(&str);
     }   
