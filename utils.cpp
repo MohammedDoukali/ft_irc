@@ -79,6 +79,16 @@ int searchByUsername(const std::string& target, const Client* clients, int numCl
 	return -1;
 }
 
+int searchByNickName(const std::string& target, const Client* clients, int numClients)
+{
+	std::string target2 = target;
+	for (int i = 0; i < numClients; i++)
+	{
+		if (strcmp(clients[i].nickname.c_str(), target2.c_str()) == 0)//working!
+			return i;
+	}
+	return -1;
+}
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels)
 {
     std::string target2 = channel_name;

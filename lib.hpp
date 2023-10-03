@@ -49,3 +49,4 @@ void sendUser(const std::string& msg, int clientSocket);
 int searchByUsername(const std::string& target, const Client* clients, int numClients);
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels);
 std::string addRandomNumber(const std::string& input);
+int searchByNickName(const std::string& target, const Client* clients, int numClients);
