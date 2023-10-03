@@ -10,6 +10,7 @@
 #include <cerrno>
 #include <vector>
 #include <arpa/inet.h>
+#include <ctime>
 
 const int MAX_CLIENTS = FD_SETSIZE - 1;
 const int MAX_CHANNELS = 1023;
@@ -25,7 +26,7 @@ struct glob
 
     public:
         int socket;
-        bool password;
+        bool authenticate;
         std::string nickname;
         std::string username;
 };
@@ -47,3 +48,4 @@ int checkArg(const std::vector<std::string> &arg, int clientSocket);
 void sendUser(const std::string& msg, int clientSocket);
 int searchByUsername(const std::string& target, const Client* clients, int numClients);
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels);
+std::string addRandomNumber(const std::string& input);

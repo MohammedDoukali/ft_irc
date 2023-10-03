@@ -2,6 +2,7 @@
 
 Channel channels[MAX_CHANNELS];
 Client clients[MAX_CLIENTS];
+int a = 0;
 
 int  check_port(std::string str)
 {
@@ -23,7 +24,7 @@ void connect_server_client(glob *stru)
     for(int i = 0;i < MAX_CLIENTS;++i)
     {
         clients[i].socket = -1;
-        clients[i].password = false;
+        clients[i].authenticate = false;
     }
     fd_set readfds;
     max_fds_socket = stru->serverSocket;
@@ -83,86 +84,146 @@ void connect_server_client(glob *stru)
     }
         
    //Check each client for activity
+    
     for (size_t i = 0; i < MAX_CLIENTS; ++i) {
     int clientSocket = clients[i].socket;
     if (FD_ISSET(clientSocket, &readfds)) {
         int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+
+     //    Send a response to the client
+     if (a ==  0)
+     {
+         std::string response = "001 RPL_WELCOME .welcome\r\n";
+         int bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+         
+        //   std::string response2 = "002 RPL_YOURHOST ma host ma waloo.\r\n";
+        //  int bytesSent2 = send(clientSocket, response2.c_str(), response2.length(), 0);
+
+        //   std::string response3 = "003 RPL_CREATED ma3rft hadi dyalax .\r\n";
+        //  int bytesSent3 = send(clientSocket, response3.c_str(), response3.length(), 0);
+
+        //   std::string response4 = "004 RPL_MYINFO galk xi infos ma3rft .\r\n";
+        //  int bytesSent4 = send(clientSocket, response4.c_str(), response4.length(), 0);
+         a++;
+        //  
+         if (bytesSent < 0 )
+             std::cerr << "Error in sending response to client " << i << ".\n";
+     }   
         if (bytesRead > 0) {
             buffer[bytesRead] = '\0';
             std::string message(buffer); 
             remove_spaces(message);
             std::cout << "Message from client " << i << ": " << message << "\n";
-            std::vector<std::string> args = split_str(message, ' ');
+
+            // if (message.substr(0,4) == "PING")
+            // int bytesSent = send(clientSocket, "PONG", 4, 0);
+
+             std::vector<std::string> args = split_str(message, ' ');
             
-            if (clients[i].password == false)
+            for (int i = 0; i < args.size() - 1;i++)
             {
-                if (args[0] == "NICK" && args.size() == 7)
+                if (args[i] == "PASS" && args[i + 1] == "testa")
                 {
-                    clients[i].username = args[1];
-                    clients[i].nickname = args[3];
+                send(clientSocket, "Kolxi naaadi !!\r\n",17 , 0);
+                clients[i].authenticate = true;
+                a = 2;
                 }
-                else if (args[0] == "CAP" && args.size() == 10)
+                if (a == 2 && args[i] == "USER")
                 {
-                    clients[i].username = args[6];
-                    clients[i].nickname = args[4];
-                }
-                else if (args[0] != "PASS")
+                if (searchByUsername(args[i + 1], clients, MAX_CLIENTS) != -1)
+                    args[i + 1] = addRandomNumber(args[i + 1]);
+                if(searchByUsername(args[i + 1], clients, MAX_CLIENTS) == -1)
                 {
-                    errorUser("You Have To Enter password : by /PASS <password> ", clientSocket);   
-                }
-                else if (args[1] != stru->password)
-				{
-					errorUser("Wrong Password! disconecting", clientSocket);
-					close(clientSocket);
-					clients[i].username = "";
-					clients[i].nickname = "";
-					clients[i].socket = -1;
-					//clients[i].password = true;
-					continue ;
-				}
-                else if (args[0] == "PASS" && args[1] == stru->password)
-                {
-                    sendUser("You Successfully Identified", clientSocket);
-                    clients[i].password = true;
-                }
-            }
-            else if (checkArg(args, clientSocket) == -1)
-					continue;
-            else if (args[0] == "NICK")
-            {
-                clients[i].nickname = args[1];
-                sendUser("You're New Nickname is : " + clients[i].nickname, clientSocket);
-            }
-            else if (args[0] == "USER")
-			{
-				if(searchByUsername(args[1], clients, MAX_CLIENTS) == -1)
-                {
-					clients[i].username = args[1];
+					clients[i].username = args[i+1];
                     sendUser("You're New Username is : " + clients[i].username, clientSocket);
                 }
-                else
-					errorUser("UserName Already Exist", clients[i].socket);
+                }
+                if (args[i] == "PING")
+                {
+                std::cout << "jjhjhjhj" <<std::endl;
+                    sendUser("PONG\r\n", clientSocket);
+                }
+            //     else
+			// 		errorUser("UserName Already Exist", clients[i].socket);
+            // }
+                
+
+                else  if (args[i] == "PASS" && args[i + 1] != "testa")
+                {
+                errorUser("Wrong Password! disconecting", clientSocket);
+			 	//	close(clientSocket);
+					// clients[i].username = "";
+					// clients[i].nickname = "";
+					// clients[i].socket = -1;
+					//clients[i].password = true;
+					//continue ;                
+                }
             }
+            // // if (clients[i].password == false)
+            // {
+            //     if (args[0] == "NICK" && args.size() == 7)
+            //     {
+            //         clients[i].username = args[1];
+            //         clients[i].nickname = args[3];
+            //     }
+            //     else if (args[0] == "CAP" && args.size() == 10)
+            //     {
+            //         clients[i].username = args[6];
+            //         clients[i].nickname = args[4];
+            //     }
+            //     else if (args[0] != "PASS")
+            //     {
+            //         errorUser("You Have To Enter password : by /PASS <password> ", clientSocket);   
+            //     }
+            //     else if (args[1] != stru->password)
+			// 	{
+			// 		errorUser("Wrong Password! disconecting", clientSocket);
+			// 		close(clientSocket);
+			// 		clients[i].username = "";
+			// 		clients[i].nickname = "";
+			// 		clients[i].socket = -1;
+			// 		//clients[i].password = true;
+			// 		continue ;
+			// 	}
+            //     else if (args[0] == "PASS" && args[1] == stru->password)
+            //     {
+            //         sendUser("You Successfully Identified", clientSocket);
+            //         clients[i].password = true;
+            //     }
+            // }
+            // else if (checkArg(args, clientSocket) == -1)
+			// 		continue;
+            // else if (args[0] == "NICK")
+            // {
+            //     clients[i].nickname = args[1];
+            //     sendUser("You're New Nickname is : " + clients[i].nickname, clientSocket);
+            // }
+            // else if (args[0] == "USER")
+			// {
+			// 	if(searchByUsername(args[1], clients, MAX_CLIENTS) == -1)
+            //     {
+			// 		clients[i].username = args[1];
+            //         sendUser("You're New Username is : " + clients[i].username, clientSocket);
+            //     }
+            //     else
+			// 		errorUser("UserName Already Exist", clients[i].socket);
+            // }
             
-            	else if (args[0] == "JOIN")
-				{
-					if (args[1][0] != '#')
-						errorUser("/JOIN <#channel>", clientSocket);
-                    else if (searchBychannelname(args[1].substr(1), channels, MAX_CHANNELS) == -1)
-                        sendUser ("Channel Not exist",clientSocket);
+            // 	else if (args[0] == "JOIN")
+			// 	{
+			// 		if (args[1][0] != '#')
+			// 			errorUser("/JOIN <#channel>", clientSocket);
+            //         else if (searchBychannelname(args[1].substr(1), channels, MAX_CHANNELS) == -1)
+            //             sendUser ("Channel Not exist",clientSocket);
 		
-				}
-            else if (args[0] == "QUIT")
-			{
-				close(clients[i].socket);
-				clients[i].socket = -1;
-				std::cout << "Client disconnected : "<< clients[i].username << std::endl;
-			}
-         // Send a response to the client
-         // std::string response = "Hello, client! Your message was received.\n";
-         // int bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
-         // if (bytesSent < 0)
-             // std::cerr << "Error in sending response to client " << i << ".\n";
+			// 	}
+            // else if (args[0] == "QUIT")
+			// {
+			// 	close(clients[i].socket);
+			// 	clients[i].socket = -1;
+			// 	std::cout << "Client disconnected : "<< clients[i].username << std::endl;
+			// }
+        
         } else if (bytesRead == 0) {
             std::cout << "Client " << i << " disconnected.\n";
             close(clientSocket);

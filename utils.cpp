@@ -89,6 +89,18 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 	}
 	return -1;
 }
+
+std::string addRandomNumber(const std::string& input) {
+    std::srand(static_cast<unsigned int>(std::time(NULL)));
+    
+    int randomNumber = std::rand() % 1000 + 1;
+
+    std::ostringstream oss;
+    oss << randomNumber;
+    std::string randomNumStr = oss.str();
+
+    return input + randomNumStr;
+}
 int checkArg(const std::vector<std::string> &arg, int clientSocket)
 {
 	if (arg[0] == "KICK")
