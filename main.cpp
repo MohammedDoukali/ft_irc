@@ -1,5 +1,5 @@
 #include "lib.hpp"
-
+// 4 octobre // 
 Channel channels[MAX_CHANNELS];
 Client clients[MAX_CLIENTS];
 int a = 0;
@@ -91,48 +91,59 @@ void connect_server_client(glob *stru)
         int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
 
      //    Send a response to the client
-     if (a ==  0)
-     {
-          std::string response =  ":ma_server_ma_waloo 001 " + clients[i].nickname + " :Welcome to the IRC server\r\n";
-        //   std::string response2 = "002 RPL_YOURHOST ma host ma waloo.\r\n";
-        //   std::string response3 = "003 RPL_CREATED ma3rft hadi dyalax .\r\n";
-        //   std::string response4 = "004 RPL_MYINFO galk xi infos ma3rft .\r\n";
+    //  if (a ==  0)
+    //  {
+    //       std::string response =  "001 " + clients[i].nickname + " :Welcome to the IRC server\r\n";
+    //     //   std::string response2 = "002 RPL_YOURHOST ma host ma waloo.\r\n";
+    //     //   std::string response3 = "003 RPL_CREATED ma3rft hadi dyalax .\r\n";
+    //     //   std::string response4 = "004 RPL_MYINFO galk xi infos ma3rft .\r\n";
 
-        //   std::string response2 =  "002\r\n";
-        //   std::string response3 =  "003\r\n";
-        //   std::string response4 =  "004\r\n";
-        //   std::string response4 = "004 RPL_MYINFO galk xi infos ma3rft .\r\n";
-         int bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
+    //     //   std::string response2 =  "002\r\n";
+    //     //   std::string response3 =  "003\r\n";
+    //     //   std::string response4 =  "004\r\n";
+    //     //   std::string response4 = "004 RPL_MYINFO galk xi infos ma3rft .\r\n";
+    //      int bytesSent = send(clientSocket, response.c_str(), response.length(), 0);
          
-        //  send(clientSocket, response2.c_str(), response2.length(), 0);
-        //  send(clientSocket, response3.c_str(), response3.length(), 0);
-        //  send(clientSocket, response4.c_str(), response3.length(), 0);
-        //  send(clientSocket, response4.c_str(), response4.length(), 0);
-         a++;
-        //  
-         if (bytesSent < 0 )
-             std::cerr << "Error in sending response to client " << i << ".\n";
-     }   
+    //     //  send(clientSocket, response2.c_str(), response2.length(), 0);
+    //     //  send(clientSocket, response3.c_str(), response3.length(), 0);
+    //     //  send(clientSocket, response4.c_str(), response3.length(), 0);
+    //     //  send(clientSocket, response4.c_str(), response4.length(), 0);
+    //      a++;
+    //     //  
+    //      if (bytesSent < 0 )
+    //          std::cerr << "Error in sending response to client " << i << ".\n";
+    //  }   
         if (bytesRead > 0) {
             buffer[bytesRead] = '\0';
             std::string message(buffer); 
             remove_spaces(message);
             std::cout << "Message from client " << i << ": " << message << "\n";
-
-            // if (message.substr(0,4) == "PING")
-            // int bytesSent = send(clientSocket, "PONG", 4, 0);
-
-             std::vector<std::string> args = split_str(message, ' ');
+            std::vector<std::string> args = split_str(message, ' ');
             
             for (int i = 0; i < args.size() - 1;i++)
             {
-                if (args[i] == "PASS" && args[i + 1] == "testa")
+                 if (clients[i].authenticate == true && a == 0)
                 {
-                sendUser("PASS testa",clientSocket);
-                clients[i].authenticate = true;
-                a = 2;
+                    std::string response =  ":ma_server_ma_Walo 001 " + clients[i].nickname + " :Welcome to the IRC server\r\n";
+                    sendUser(response.c_str(), clientSocket);
+                    a++;
                 }
-                if (a == 2 && args[i] == "USER")
+                if (args[i] == "PASS" && args[i + 1] == stru->password)
+                {
+                sendUser("You Are Successfully Registered",clientSocket);
+                clients[i].authenticate = true;
+                }
+                else if (args[i] == "PASS" && args[i + 1] != stru->password)
+                {
+                    errorUser("Passowrd Incorrect : Are You A Hidden Thief !!\r\n",clientSocket);
+                  //  sendUser("QUIT",clientSocket);
+			 	    close(clientSocket);
+					clients[i].username = "";
+					clients[i].nickname = "";
+					clients[i].socket = -1;
+                    //break;
+                }
+                if (args[i] == "USER")
                 {
                 if (searchByUsername(args[i + 1], clients, MAX_CLIENTS) != -1)
                     args[i + 1] = addRandomNumber(args[i + 1]);
@@ -142,42 +153,41 @@ void connect_server_client(glob *stru)
                     sendUser("You're New Username is : " + clients[i].username, clientSocket);
                 }
                 }
-                // if (args[i] == "PING")
-                // {
-                //     std::string str = "PONG";
-                // std::cout << "jjhjhjhj" <<std::endl;
-                //     send(clientSocket,str.c_str(),str.size() + 1, 0);
-                // }
-                if (args.size() > 1 && args[0] == "NICK")
+                if (args[i] == "PING")
                 {
-                  if (searchByNickName(args[1], clients, MAX_CLIENTS) != -1)
-                    sendUser(":ma_server_ma_waloo 433 client_dzeeb NEWNICK_NAME :Nickname is already in use\r\n", clientSocket);
-                    if(searchByNickName(args[1], clients, MAX_CLIENTS) == -1)
+                    sendUser("PONG\r\n",clientSocket);
+                    // std::cout << "jjhjhjhj" <<std::endl;
+                }
+                if (args.size() > 1 && args[i] == "NICK")
+                {
+                    std::cout << "DSDsdsd" << std::endl;
+                  if (searchByNickName(args[i + 1], clients, MAX_CLIENTS) != -1)
+                    sendUser(":ma_server_ma_waloo 433 client_dzeeb " + args[i + 1] + " :Nickname is already in use\r\n", clientSocket);
+                    if(searchByNickName(args[i + 1], clients, MAX_CLIENTS) == -1)
                 {
                     std::string old_one = clients[i].nickname;
-					clients[i].nickname = args[1];
-                    sendUser(":" + old_one + " NICK :"+ args[1] + "\r\n", clientSocket);
+					clients[i].nickname = args[i + 1];
+                    sendUser(":" + old_one + " NICK :"+ args[i + 1] + "\r\n", clientSocket);
                //     sendUser("NICK :" + args[1] + "\r\n", clientSocket);
                     // sendUser("You're New Username is : " + clients[i].username, clientSocket);
                 }
                 }
-
 
             //     else
 			// 		errorUser("UserName Already Exist", clients[i].socket);
             // }
                 
 
-                else  if (args[i] == "PASS" && args[i + 1] != "testa")
-                {
-                errorUser("Wrong Password! disconecting", clientSocket);
-			 	//	close(clientSocket);
-					// clients[i].username = "";
-					// clients[i].nickname = "";
-					// clients[i].socket = -1;
-					//clients[i].password = true;
-					//continue ;                
-                }
+                // else  if (args[i] == "PASS" && args[i + 1] != "testa")
+                // {
+                // errorUser("Wrong Password! disconecting", clientSocket);
+			 	// //	close(clientSocket);
+				// 	// clients[i].username = "";
+				// 	// clients[i].nickname = "";
+				// 	// clients[i].socket = -1;
+				// 	//clients[i].password = true;
+				// 	//continue ;                
+                // }
             }
             // // if (clients[i].password == false)
             // {
@@ -247,11 +257,13 @@ void connect_server_client(glob *stru)
         } else if (bytesRead == 0) {
             std::cout << "Client " << i << " disconnected.\n";
             close(clientSocket);
-            clients[i].socket = 0;
+            clients[i].socket = -1;
+            clients[i].authenticate = false;
+            a = 0;
         } else {
             std::cerr << "Error in recv from client " << i << ".\n";
             close(clientSocket);
-            clients[i].socket = 0;
+            clients[i].socket = -1;
         }
     }
 }
