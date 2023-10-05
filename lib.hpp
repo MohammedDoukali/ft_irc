@@ -16,6 +16,7 @@ const int MAX_CLIENTS = FD_SETSIZE - 1;
 const int MAX_CHANNELS = 1023;
 const int MAX_BUFFER_SIZE = 1024;
 
+
 struct glob
 {
     struct sockaddr_in serverAddr;
@@ -26,7 +27,7 @@ struct glob
 
     public:
         int socket;
-        bool authenticate;
+        int status;
         std::string nickname;
         std::string username;
 };
