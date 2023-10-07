@@ -24,12 +24,12 @@ struct glob
     std::string password;
 };
  class Client {
-
-    public:
+   public:
         int socket;
         int status;
         std::string nickname;
         std::string username;
+        std::string tmp_nick;
 };
 
 class Channel{
