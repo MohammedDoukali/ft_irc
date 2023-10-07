@@ -22,6 +22,7 @@ struct glob
     struct sockaddr_in serverAddr;
     int serverSocket;
     std::string password;
+    int num_clients;
 };
  class Client {
    public:

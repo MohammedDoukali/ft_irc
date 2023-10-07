@@ -20,10 +20,11 @@ void connect_server_client(glob *stru)
     char buffer[MAX_BUFFER_SIZE];
     int chan_indx = 0;
 
+    stru->num_clients = 0;
     for(int i = 0;i < MAX_CLIENTS;++i)
     {
         clients[i].socket = -1;
-     //   clients[i].status = -1;
+        // clients[i].status = -1;
         // clients[i].nickname = "MIKE";
         // clients[i].username = "";
     }
@@ -75,8 +76,10 @@ void connect_server_client(glob *stru)
 			std::cout << "New client connected: " << inet_ntoa(cl_addr.sin_addr) << std::endl;
             max_fds_socket = std::max(max_fds_socket, clientSocket);
             clients[ind].tmp_nick = "tmp_nick";
-            clients[ind].nickname = "";
             clients[ind].status = -1;
+            clients[ind].nickname = "";
+            stru->num_clients++;
+
         }
     
     }
@@ -87,105 +90,101 @@ void connect_server_client(glob *stru)
     int clientSocket = clients[i].socket;
     if (FD_ISSET(clientSocket, &readfds)) {
         int bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);  
-        if (bytesRead > 0) {
+        if (bytesRead > 0)
+    {
             buffer[bytesRead] = '\0';
             std::string message(buffer); 
             remove_spaces(message);
             std::cout << "Message from client " << i << ": " << message << "\n";
             std::vector<std::string> args = split_str(message, ' ');
             
-            for (int i = 0; i < args.size() - 1;i++)
+            for (int j = 0; j < args.size() - 1;j++)
             {
-                if (args[i] == "CAP")
+                 if (args[j] == "CAP")
                     sendUser("CAP * LS",clientSocket);
-                  if (args[i] == "PASS" && args[i + 1] == stru->password)
+                 if (args[j] == "PASS" && args[j + 1] == stru->password)
                 {
                     sendUser("You Are Successfully Registered",clientSocket);
-                    clients[i].status = 0;
-                    std::cout << clients[i].nickname << clients[i].status <<  std::endl;
-                                        // clients[i].nickname = "nick0"; 
-                    // clients[i].username = "user0";   
+                    clients[i].status = 0;   
                 }
-                 if (args.size() > 1 && args[i] == "NICK")
+                if (clients[i].status == 1 )
                 {
-                    // if (clients[i].status <= 0)
-                    // {
-                    //    clients[i].tmp_nick = args[i + 1];
-                    //    clients[i].status = 1;
-                    // }
-                    if (searchByNickName(args[i + 1], clients, MAX_CLIENTS) != -1)
-                    {
-                    sendUser(":ma_server_ma_waloo 433 client_dzeeb " + args[i + 1] + " :Nickname is already in use\r\n", clientSocket);
-                    std::cout << "makhssox ydkheel hna:" << clients[i].status << std::endl;
-                    }
-                    else if(searchByNickName(args[i + 1], clients, MAX_CLIENTS) == -1)
-                    {
-                    std::string old_one = clients[i].nickname;
-					clients[i].nickname = args[i + 1];
-                    sendUser(":" + old_one + " NICK :" + args[i + 1] + "\r\n", clientSocket);
-                    std::cout << "donc dkhel hna:" << clients[i].nickname << " status:" << clients[i].status << std::endl;
-                    }
-                }
-                 if (clients[i].nickname != "" && clients[i].status == 0)
-                {
-                  std::string response =  ":ma_server_ma_Walo 001 "+ clients[i].nickname + " :Welcome to the IRC server\r\n";
-                  std::cout << response ;
-                  sendUser(response.c_str(), clientSocket); 
-                }
-               
-                //  if (clients[i].status == 1)
-                // {
-                                     				    
-                //     // clients[i].nickname = clients[i].tmp_nick;
-                //     // clients[i].tmp_nick = "walo";
-                //     // std::cout << "tmp: " << clients[i].nickname << std::endl;
-                //  if (searchByNickName(clients[i].tmp_nick, clients, MAX_CLIENTS) != -1 )
-                //  {
-                //     std::cout << "hnaaaaa" << std::endl;
-                 
-                //    // std::string tmp = clients[i].nickname;
-                //     // clients[i].tmp_nick = addRandomNumber(clients[i].tmp_nick);
-                //      sendUser(":ma_server_ma_waloo 433 client_dzeeb " + clients[i].tmp_nick + " :Nickname is already in use\r\n", clientSocket);
-
-                //  }
-                //  //   std::cout << clients[i].nickname << std::endl;
+                 while (searchByNickName(clients[i].tmp_nick, clients, stru->num_clients) != -1 )
+                    clients[i].tmp_nick += "_" ;                
                     
-                //     clients[i].nickname = clients[i].tmp_nick;
-                //     std::string response =  ":ma_server_ma_Walo 001 "+ clients[i].nickname + " :Welcome to the IRC server\r\n";
-                //     std::cout << response ;
-                //     sendUser(":zwita NICK :" + clients[i].nickname + "\r\n", clientSocket);
-                //    // sendUser(response.c_str(), clientSocket); 
-                //     clients[i].status = 2;
+                    clients[i].nickname = clients[i].tmp_nick;
+                    std::string response =  ":ma_server_ma_Walo 001 "+ clients[i].nickname + " :Welcome to the IRC server\r\n";
+                    // std::cout << response ;
+                    sendUser(":simodk NICK :" + clients[i].nickname + "\r\n", clientSocket);
+                    sendUser(response.c_str(), clientSocket);
+                    sendUser("002 :Your Host Is ma_server_ma_Walo\r\n",clientSocket);
+                    sendUser("003 :This server was created gha db\r\n",clientSocket);
+                    sendUser("004 :",clientSocket);
 
-                //     // sendUser(":ma_server_ma_Walo 001 " + clients[i].nickname + " :Nickname Set !! \r\n",clientSocket);
-                //     // sendUser(":" +  clients[i].tmp_nick + " NICK :" + clients[i].nickname + "\r\n", clientSocket);
-                // }
-                
-                if (args[i] == "PASS" && args[i + 1] != stru->password)
+                    clients[i].status = 3;
+                }
+                 if (args.size() > 1 && args[j] == "NICK")
                 {
-                    errorUser("Passowrd Incorrect : Are You A Hidden Thief !!\r\n",clientSocket);
-                  //  sendUser("QUIT",clientSocket);
+                    if (clients[i].status == 0)
+                    {
+                       clients[i].tmp_nick = args[j + 1];
+                       clients[i].status = 1;
+                    }
+                    else if (clients[i].status ==3 && searchByNickName(args[j + 1], clients, stru->num_clients) != -1)
+                        sendUser(":ma_server_ma_waloo 433 client_dzeeb " + args[j + 1] + " :Nickname is already in use\r\n", clientSocket);                    
+                
+                    else if(clients[i].status ==3 && searchByNickName(args[j + 1], clients, stru->num_clients) == -1)
+                    {
+                        std::string old_one = clients[i].nickname;
+					    clients[i].nickname = args[j + 1];
+                        sendUser(":" + old_one + " NICK :" + args[j + 1] + "\r\n", clientSocket);
+                        std::cout << "donc dkhel hna:" << clients[i].nickname << " status:" << clients[i].status << std::endl;
+                    }
+                }
+                if (args[j] == "PASS" && args[j + 1] != stru->password)
+                {  
+                    sendUser(":ma_server_ma_waloo 464 simo :Error : Passowrd Incorrect : Are You A Hidden Thief !!\r\n", clientSocket);
 					clients[i].username = "";
 					clients[i].nickname = "";
 					clients[i].socket = -1;
                     clients[i].status = -1;
+                    stru->num_clients--;
+                    // sendUser("QUIT",clientSocket);
 			 	    close(clientSocket);
                     //break;
                 }
-                if (args[i] == "USER")
+                if (args[j] == "USER")
                 {
-                if (searchByUsername(args[i + 1], clients, MAX_CLIENTS) != -1)
-                    // args[i + 1] = addRandomNumber(args[i + 1]);
-                    
-                if(searchByUsername(args[i + 1], clients, MAX_CLIENTS) == -1)
-                {
-					clients[i].username = args[i+1];
-                    sendUser("You're New Username is : " + clients[i].username, clientSocket);
+                    if (searchByUsername(args[j + 1], clients,stru->num_clients) != -1)
+                         args[j + 1] = addRandomNumber(args[j + 1]);
+                     
+                    if(searchByUsername(args[j + 1], clients, MAX_CLIENTS) == -1)
+                    {
+				    	clients[i].username = args[j + 1];
+                        sendUser("You're Username is : " + clients[i].username, clientSocket);
+                    }
                 }
-                }
-                if (args[i] == "PING")
+                if (args[j] == "PING")
                     sendUser("PONG\r\n",clientSocket);
-            }
+                if (args[j] == "PRIVMSG")
+                {
+                    std::string mssg;
+                      size_t pos = message.find(':');
+                     if (pos != std::string::npos)
+                        mssg = message.substr(pos + 1);
+                    int ind = searchByNickName(args[j + 1], clients, stru->num_clients);
+                    if (i == ind)
+                        sendUser("Do You Want to Send Mssg TO Yourself... !! ",clientSocket);
+                    else if (ind != -1)
+                        sendUser(clients[i].nickname + ": " + mssg,clients[ind].socket);
+                    else
+                        sendUser(":411 User: " + args[j + 1] + " Not Found !\r\n",clientSocket);
+                } 
+
+           }
+                 
+           
+            
             
         } else if (bytesRead == 0) {
             std::cout << "Client " << i << " disconnected.\n";
@@ -194,6 +193,7 @@ void connect_server_client(glob *stru)
             clients[i].status = -1;
             clients[i].nickname = "";
             clients[i].username = "";
+            stru->num_clients--;
         } else {
             std::cerr << "Error in recv from client " << i << ".\n";
             close(clientSocket);
