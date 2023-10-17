@@ -68,6 +68,14 @@ void sendUser(const std::string& msg, int clientSocket)
 	return ;
 }
 
+void sendUser2(const std::string& msg, int clientSocket, std::string name)
+{
+	std::string msgError = "PRIVMSG " + name + " :" + msg + "\n";
+	std::cout << msgError << std::endl;
+	// std::cout <<"Send  --> [" << msg << "]" << std::endl;
+	send(clientSocket, msgError.c_str(), msgError.length(), 0);
+	return ;
+}
 int searchByUsername(const std::string& target, const Client* clients, int numClients)
 {
 	std::string target2 = target;
@@ -89,6 +97,7 @@ int searchByNickName(const std::string& target, const Client* clients, int numCl
 	}
 	return -1;
 }
+
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels)
 {
     std::string target2 = channel_name;
@@ -98,6 +107,104 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 			return i;
 	}
 	return -1;
+}
+
+void create_channel(const int clientSocket,Channel *channels,const Client *clients, std::string name, const int i, int channel_index)
+{
+		std::cout << "9dima:" << channels[channel_index].clients_sockets.size() << std::endl;
+
+		channels[channel_index].index = channel_index;
+		channels[channel_index].name = name;
+		channels[channel_index].clients_sockets.push_back(clients[i].socket);
+		channels[channel_index].admins_users.push_back(clients[i].nickname);
+		channels[channel_index].topic = "";
+		std::cout << "jdida:" << channels[channel_index].clients_sockets.size() << std::endl;
+		sendUser("Channel " + name + " Created",clientSocket);
+		channels[channel_index].lmt = -1;
+		channels[channel_index].mode_i = false;
+		channels[channel_index].mode_t = false;
+		channels[channel_index].mode_k = false;
+		channels[channel_index].mode_l = false;
+		channels[channel_index].mode_o = false;
+}
+int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
+{
+	for (size_t i = 0; i < channels[ind].clients_sockets.size(); i++)
+	{
+		if (channels[ind].clients_sockets[i] == clientSocket)
+		return (i);
+	}
+	return (-1);
+}
+std::string get_modes(const Channel* channels,int ind)
+{
+	std::string mode = " +";
+
+		if (channels[ind].mode_i == true)
+			mode += "i";
+		if (channels[ind].mode_t == true)
+			mode += "t";
+		if (channels[ind].mode_k == true)
+			mode += "k";
+		if (channels[ind].mode_l == true)
+			mode += "l";
+		if (channels[ind].mode_o == true)
+			mode += "o";
+	return (mode);
+}
+
+// int check_valid_mode(std::string mode)
+// {
+// 	if ((mode[0] == '+' || mode[0] == '-')
+// 	&& mode.find_first_not_of("itkol") == std::string::npos)
+// 	{
+// 		if ()
+// 	}
+	
+// 	return -1;
+// }
+
+int srch_is_operator (std::string nickname,const int clientSocket,const Channel* channels,int ind)
+{
+	if (srch_clnt_chan(clientSocket,channels,ind) != -1)
+	{
+		for (size_t i = 0; i < channels[ind].admins_users.size(); i++)
+		{
+			if (nickname == channels[ind].admins_users[i])
+			return (1);
+		}
+	}
+	return (-1);
+}
+
+void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname)
+{
+	for (size_t i = 0 ;i < num_chan; i++)
+	{
+		std::ostringstream oss;
+   		oss << channels[i].clients_sockets.size();
+    	std::string nm_users = oss.str();
+		sendUser("322 " + nickname + " " + channels[i].name + " " + nm_users + " " + channels[i].topic,clientSocket);
+	}
+}
+int srch_admin_users(std::string nickname,const Channel* channels)
+{
+	for (size_t i = 0; i < channels->admins_users.size();i++)
+	{
+		if (nickname == channels->admins_users[i])
+			return i;
+	}
+	return (-1);
+}
+std::string extract_message(std::vector<std::string> args,int ind)
+{
+	std::string mssg = "";
+	for (int indd = ind; indd  < args.size(); indd++)
+	{
+		mssg += args[indd];
+		mssg += " ";
+	}
+	return(mssg);
 }
 
 std::string addRandomNumber(const std::string& input) {
@@ -110,99 +217,4 @@ std::string addRandomNumber(const std::string& input) {
     std::string randomNumStr = oss.str();
 
     return input + randomNumStr;
-}
-
-int checkArg(const std::vector<std::string> &arg, int clientSocket)
-{
-	if (arg[0] == "KICK")
-	{
-		if (arg.size() < 3 || arg.size() > 4)
-			errorUser("/KICK <#Channel> <user> <:Message>/Optional", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "INVITE ")
-	{
-		if (arg.size() != 3)
-			errorUser("/INVITE <#Channel> <user>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "TOPIC")
-	{
-		if (arg.size() < 2)
-			errorUser("/TOPIC <#Channel> <Message>/Optional", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "MODE")
-	{
-		if (arg.size() < 3)
-			errorUser("/MODE <#Channel> <arg> <Options>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "JOIN")
-	{
-		if (arg.size() < 2)
-			errorUser("/JOIN <#Channel>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "PRIVMSG")
-	{
-		if (arg.size() < 3)
-			errorUser("/PRIVMSG <#Channel/USER> <Message>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "PART")
-	{
-		if (arg.size() != 2)
-			errorUser("/PART <#Channel>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "WHOIS")
-	{
-		if (arg.size() < 2)
-			errorUser("/WHOIS <user>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "NICK")
-	{
-		if (arg.size() != 2)
-			errorUser("/NICK <new_nickname>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "USER")
-	{
-		if (arg.size() < 2)
-			errorUser("/USER <username>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "PASS")
-	{
-		if (arg.size() != 2)
-			errorUser("/PASS <password>", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "LIST" || arg[0] == "LIST\0")
-	{
-		if (arg.size() != 1)
-			errorUser("/LIST", clientSocket);
-		else
-			return 1;
-	}
-	else if (arg[0] == "EXIT" || arg[0] == "EXIT\0")
-		return 1;
-	else if (arg[0] == "QUIT" || arg[0] == "QUIT\0")
-		return 1;
-	else
-		errorUser("INVALID COMMAND!!", clientSocket);
-	return -1;
 }

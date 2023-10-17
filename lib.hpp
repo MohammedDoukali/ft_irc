@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <cerrno>
 #include <vector>
+#include <map>
 #include <arpa/inet.h>
 #include <ctime>
 
@@ -23,6 +24,7 @@ struct glob
     int serverSocket;
     std::string password;
     int num_clients;
+    int nm_channels;
 };
  class Client {
    public:
@@ -31,12 +33,22 @@ struct glob
         std::string nickname;
         std::string username;
         std::string tmp_nick;
+
 };
 
 class Channel{
     public:
-    std::vector<int> clients_sockest;
+    std::vector<int> clients_sockets;
+    std::vector<std::string> admins_users;
     std::string name;
+    std::string topic;
+    int index;
+    int lmt;
+    bool mode_i;
+    bool mode_t;
+    bool mode_l;
+    bool mode_k;
+    bool mode_o;
 
 };
 
@@ -48,7 +60,16 @@ std::vector<std::string> split_str(std::string str, char sep);
 void errorUser(const std::string& msg, int clientSocket);
 int checkArg(const std::vector<std::string> &arg, int clientSocket);
 void sendUser(const std::string& msg, int clientSocket);
+void sendUser2(const std::string& msg, int clientSocket, std::string name);
 int searchByUsername(const std::string& target, const Client* clients, int numClients);
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels);
+void create_channel(const std::string &channel_name);
 std::string addRandomNumber(const std::string& input);
 int searchByNickName(const std::string& target, const Client* clients, int numClients);
+void create_channel(const int clientSocket,Channel *channels,const Client *clients, std::string name, const int i, int channel_index);
+std::string extract_message(std::vector<std::string> args, int ind);
+int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind);
+int srch_admin_users(std::string nickname,const Channel* channels);
+void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname);
+int srch_is_operator (std::string nickname, const int clientSocket, const Channel* channels, int ind);
+std::string get_modes(const Channel* channels,int ind);
