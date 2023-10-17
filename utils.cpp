@@ -111,16 +111,16 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 
 void create_channel(const int clientSocket,Channel *channels,const Client *clients, std::string name, const int i, int channel_index)
 {
-		std::cout << "9dima:" << channels[channel_index].clients_sockets.size() << std::endl;
 
 		channels[channel_index].index = channel_index;
 		channels[channel_index].name = name;
-		channels[channel_index].clients_sockets.push_back(clients[i].socket);
+	//	channels[channel_index].clients_sockets.push_back(clients[i].socket);
+	//	std::cout << "------------------------------------" << std::endl;
 		channels[channel_index].admins_users.push_back(clients[i].nickname);
 		channels[channel_index].topic = "";
-		std::cout << "jdida:" << channels[channel_index].clients_sockets.size() << std::endl;
 		sendUser("Channel " + name + " Created",clientSocket);
-		channels[channel_index].lmt = -1;
+		channels[channel_index].lmt = 100000;
+		channels[channel_index].limit = "";
 		channels[channel_index].mode_i = false;
 		channels[channel_index].mode_t = false;
 		channels[channel_index].mode_k = false;

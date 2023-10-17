@@ -44,6 +44,7 @@ class Channel{
     std::string topic;
     int index;
     int lmt;
+    std::string limit;
     bool mode_i;
     bool mode_t;
     bool mode_l;

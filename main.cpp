@@ -205,6 +205,8 @@ void connect_server_client(glob *stru)
                             if (args.size() == 2 && ind_chan != -1)
                             {
                                 std::string mode = get_modes(channels, ind_chan);
+                                if (channels[ind_chan].mode_l == true)
+                                    mode += " " + channels[ind_chan].limit;
                                 sendUser("324 " + clients[i].nickname + " " + args[j + 1] + mode, clientSocket);
                             }
                             else if (ind_chan == -1)
@@ -219,33 +221,49 @@ void connect_server_client(glob *stru)
                             {
                                 if ((args[j + 2][0] == '+' || args[j + 2][0] == '-'))
                                 {
-                                    std::string tmp = "+";
+                                    std::string tmp = "";
+                                    tmp+= args[j + 2][0];
                                     for (size_t p = 1; p < args[j + 2].size(); p++)
                                     {
                                         if (args[j + 2][p] != 'i' && args[j + 2][p] != 't' && args[j + 2][p] != 'k' && args[j + 2][p] != 'l' && args[j + 2][p] != 'o')
                                             sendUser("472 " + clients[i].nickname + " " + args[j + 2][p] + " :Unknown mode", clientSocket);
                                         // else if (tmp.find(args[j + 2][p]) == std::string::npos)
                                         //     tmp += args[j + 2][p];
-                                        if (args[j + 2][0] == '+' && args[j + 2][p] == 'l'  )
+                                        else if (args[j + 2][0] == '+' && args[j + 2][p] == 'l' )
+                                        {
+                                            std::cout << args.size() << std::endl;
+                                            if (args.size() == 4)
                                             {
-                                                if (args.size() == 4)
-                                                {
-                                                std::cout << "ana hna a w9" << std::endl;
-                                                std::cout << "args[j + 3] " << args[j + 3] << std::endl;
-                                                std::istringstream limiter(args[j + 3]);
-                                                int limit;
-                                                limiter >> limit;
-                                                channels[ind_chan].lmt = limit;
-                                                channels[ind_chan].mode_l = true;
-                                                 tmp = tmp + args[j + 2][p] + " " + args[j + 3];
-                                                }
-                                                else
-                                                sendUser(":ma_server_ma_Walo 461 " + clients[i].nickname + " "  + args[ j + 2] + " :Not enough parameters",clientSocket);
+                                            std::cout << "ana hna a w9" << std::endl;
+                                            std::cout << "args[j + 3] " << args[j + 3] << std::endl;
+                                            std::istringstream limiter(args[j + 3]);
+                                            int limit;
+                                            limiter >> limit;
+                                            channels[ind_chan].lmt = limit;
+                                            channels[ind_chan].limit = args[j + 3];
+                                            std::cout << " limit : "  << limit << std::endl;
+                                            channels[ind_chan].mode_l = true;
+                                             tmp += args[j + 2][p];
                                             }
-                                        if (args[j + 2][0] == '+' && args[j + 2][p] == 'i')
+                                            else
+                                            sendUser(":ma_server_ma_Walo 461 " + clients[i].nickname + " "  + args[ j + 2] + " :Not enough parameters",clientSocket);
+                                        }
+                                        else if (args[j + 2][0] == '-' && args[j + 2][p] == 'l' )
+                                        {
+                                                channels[ind_chan].lmt = 100000;
+                                                channels[ind_chan].mode_l = false;
+                                                tmp += args[j + 2][p];
+                                          
+                                        }
+                                        else if (args[j + 2][0] == '+' && args[j + 2][p] == 'i')
                                             tmp += args[j + 2][p];
+                                        if (args[j + 2][0] == '+' && p == args[j + 2].size() - 1 && tmp.find('l') != std::string::npos)
+                                         {
+                                           tmp += " ";
+                                           tmp += args[j + 3];
+                                         }
                                     }
-                                    if (tmp != "")
+                                    if (tmp != "+" && tmp != "-")
                                         sendUser("324 " + clients[i].nickname + " " + args[j + 1] + " " + tmp, clientSocket);
                                     //   }
                                     // channels[ind_chan].mode_t = true;
@@ -300,23 +318,24 @@ void connect_server_client(glob *stru)
                             std::cout << "hadi nm channel : " << stru->nm_channels << std::endl;
                             if (ind_chan == -1)
                             {
-                                std::cout << "DSdsdds" << std::endl;
                                 create_channel(clientSocket, channels, clients, args[j + 1], i, stru->nm_channels);
                                 ind_chan = stru->nm_channels;
                                 stru->nm_channels++;
                             }
-                            else if ( channels[ind_chan].clients_sockets.size() >= channels[ind_chan].lmt)
-                                sendUser(":ma_server_ma_Walo 471 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+l)", clientSocket);
-                            else 
+                            if (channels[ind_chan].lmt != -1 && channels[ind_chan].clients_sockets.size() >= channels[ind_chan].lmt)
                             {
-                            
+                                std::cout << "limit mn dakhel : " << channels[ind_chan].lmt << " size:" <<  channels[ind_chan].clients_sockets.size()  << std::endl; 
+                                sendUser(":ma_server_ma_Walo 471 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+l)", clientSocket);
+                            }
+                            else if (channels[ind_chan].lmt == -1 || (channels[ind_chan].lmt > -1 && channels[ind_chan].clients_sockets.size() < channels[ind_chan].lmt))
+                            {
+                                std::cout << "wax dkhlti hna-----------------" << std::endl;
                                 channels[ind_chan].clients_sockets.push_back(clients[i].socket);
                                 if (channels[ind_chan].topic != "")
                                     sendUser(":ma_server_ma_Walo 332 " + clients[i].nickname + " " + args[j + 1] + " " + channels[ind_chan].topic, clientSocket);
                                 //   sendUser(":ma_server_ma_Walo JOIN " + args[i + 1], clientSocket);
-                            }
-                            if (channels[ind_chan].clients_sockets.size() < channels[ind_chan].lmt)
-                            {
+                            
+                            
                             for (int k = 0; k < stru->num_clients; k++)
                             {
                                 for (std::size_t l = 0; l < channels[ind_chan].clients_sockets.size(); l++)
