@@ -199,6 +199,13 @@ void connect_server_client(glob *stru)
                         }
                         if (args[j] == "LIST")
                             list_response(channels, clientSocket, stru->nm_channels, clients[i].nickname);
+                        if (args[j] == "INVITE")
+                        {
+                            sendUser(":" + clients[i].nickname + ". INVITE " + args[j + 1] + " :" + args[j + 2],clientSocket);
+                            sendUser("341 " + clients[i].nickname + " " + args[j + 1] + " " + args[j+2],clientSocket);
+                            sendUser(":" + clients[i].nickname + " INVITE " + args[j + 1] + " :" + args[j + 2],clients[searchByNickName(args[j + 1],clients,stru->num_clients)].socket);
+                            // sendUser(clients[i].nickname + " invitees you to " + args[j + 2],clients[searchByNickName(args[j + 1],clients,stru->num_clients)].socket);
+                        }
                         if (args[j] == "MODE")
                         {
                             int ind_chan = searchBychannelname(args[j + 1], channels, stru->nm_channels);
@@ -215,7 +222,8 @@ void connect_server_client(glob *stru)
                             {
                                 std::cout << "aykoon dkheel hna" << std::endl;
                                 // sendUser("481 " + clients[i].nickname + " :Permission Denied- You're not an IRC operator",clientSocket);
-                                sendUser(":! NOTICE " + args[j + 1] + " :#chan :You're not channel operator ", clientSocket);
+                                // sendUser("482 " +  clients[i].nickname + " " +  channels[ind_chan].name + " :You're not a channel operator",clientSocket);
+                                sendUser(":! NOTICE " + args[j + 1] + " :" + channels[ind_chan].name + " :You're not channel operator ", clientSocket);
                             }
                             else if (args.size() > 2 && ind_chan != -1 && srch_is_operator(clients[i].nickname, clients[i].socket, channels, ind_chan) != -1)
                             {
@@ -229,10 +237,10 @@ void connect_server_client(glob *stru)
                                             sendUser("472 " + clients[i].nickname + " " + args[j + 2][p] + " :Unknown mode", clientSocket);
                                         // else if (tmp.find(args[j + 2][p]) == std::string::npos)
                                         //     tmp += args[j + 2][p];
-                                        else if (args[j + 2][0] == '+' && args[j + 2][p] == 'l' )
+                                        else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '+' ) && args[j + 2][p] == 'l' )
                                         {
                                             std::cout << args.size() << std::endl;
-                                            if (args.size() == 4)
+                                            if (args.size() == 4 && args[j + 2][0] == '+')
                                             {
                                             std::cout << "ana hna a w9" << std::endl;
                                             std::cout << "args[j + 3] " << args[j + 3] << std::endl;
@@ -243,20 +251,38 @@ void connect_server_client(glob *stru)
                                             channels[ind_chan].limit = args[j + 3];
                                             std::cout << " limit : "  << limit << std::endl;
                                             channels[ind_chan].mode_l = true;
-                                             tmp += args[j + 2][p];
+                                            tmp += args[j + 2][p];
                                             }
-                                            else
-                                            sendUser(":ma_server_ma_Walo 461 " + clients[i].nickname + " "  + args[ j + 2] + " :Not enough parameters",clientSocket);
-                                        }
-                                        else if (args[j + 2][0] == '-' && args[j + 2][p] == 'l' )
-                                        {
+                                            else if (args[j + 2][0] == '-')
+                                            {
                                                 channels[ind_chan].lmt = 100000;
                                                 channels[ind_chan].mode_l = false;
                                                 tmp += args[j + 2][p];
-                                          
+                                            }
+                                            else if (args.size() == 3 && args[j + 2][0] == '+')
+                                                sendUser(":ma_server_ma_Walo 461 " + clients[i].nickname + " "  + args[ j + 2] + " :Not enough parameters",clientSocket);
+
                                         }
-                                        else if (args[j + 2][0] == '+' && args[j + 2][p] == 'i')
+                                        else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '-' ) && args[j + 2][p] == 't')
+                                        {
+                                            if (args[j + 2][0] == '-')
+                                                channels[ind_chan].mode_t = false;
+                                            else
+                                                channels[ind_chan].mode_t = true;
                                             tmp += args[j + 2][p];
+                                        }
+                                        // else if (args[j + 2][0] == '-' && args[j + 2][p] == 'l' )
+                                        // {
+                                        //         channels[ind_chan].lmt = 100000;
+                                        //         channels[ind_chan].mode_l = false;
+                                        //         tmp += args[j + 2][p];
+                                          
+                                        // }
+                                        else if (args[j + 2][0] == '+' && args[j + 2][p] == 'i')
+                                        {
+                                            tmp += args[j + 2][p];
+                                            channels[ind_chan].mode_i = true;
+                                        }
                                         if (args[j + 2][0] == '+' && p == args[j + 2].size() - 1 && tmp.find('l') != std::string::npos)
                                          {
                                            tmp += " ";
@@ -285,7 +311,9 @@ void connect_server_client(glob *stru)
                         if (args[j] == "TOPIC")
                         {
                             std::cout << args.size() << std::endl;
-                            if (args.size() > 2 && searchBychannelname(args[j + 1], channels, MAX_CHANNELS) != -1)
+                            int ind_chan = searchBychannelname(args[j + 1], channels, MAX_CHANNELS);
+                           if ((args.size() > 2 && ind_chan != -1) && (channels[ind_chan].mode_t == false
+                                || (srch_is_operator(clients[i].nickname,clientSocket,channels,ind_chan) != -1 && channels[ind_chan].mode_t == true )))
                             {
                                 std::string topic = extract_message(args, 2);
                                 channels[searchBychannelname(args[j + 1], channels, MAX_CHANNELS)].topic = topic;
@@ -325,7 +353,12 @@ void connect_server_client(glob *stru)
                             if (channels[ind_chan].lmt != -1 && channels[ind_chan].clients_sockets.size() >= channels[ind_chan].lmt)
                             {
                                 std::cout << "limit mn dakhel : " << channels[ind_chan].lmt << " size:" <<  channels[ind_chan].clients_sockets.size()  << std::endl; 
-                                sendUser(":ma_server_ma_Walo 471 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+l)", clientSocket);
+                                sendUser(":ma_server_ma_Walo 471 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+i)", clientSocket);
+                            }
+                            else if (channels[ind_chan].mode_i == true)
+                            {
+                                sendUser(":ma_server_ma_Walo 473 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+l)", clientSocket);
+                                
                             }
                             else if (channels[ind_chan].lmt == -1 || (channels[ind_chan].lmt > -1 && channels[ind_chan].clients_sockets.size() < channels[ind_chan].lmt))
                             {

@@ -134,7 +134,7 @@ int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
 		if (channels[ind].clients_sockets[i] == clientSocket)
 		return (i);
 	}
-	return (-1);
+	return (-0);
 }
 std::string get_modes(const Channel* channels,int ind)
 {
