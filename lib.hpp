@@ -50,7 +50,6 @@ class Channel{
     bool mode_l;
     bool mode_k;
     bool mode_o;
-    std::string 
 
 };
 

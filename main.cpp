@@ -237,7 +237,7 @@ void connect_server_client(glob *stru)
                                             sendUser("472 " + clients[i].nickname + " " + args[j + 2][p] + " :Unknown mode", clientSocket);
                                         // else if (tmp.find(args[j + 2][p]) == std::string::npos)
                                         //     tmp += args[j + 2][p];
-                                        else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '+' ) && args[j + 2][p] == 'l' )
+                                        else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '-' ) && args[j + 2][p] == 'l' )
                                         {
                                             std::cout << args.size() << std::endl;
                                             if (args.size() == 4 && args[j + 2][0] == '+')
@@ -290,7 +290,9 @@ void connect_server_client(glob *stru)
                                          }
                                     }
                                     if (tmp != "+" && tmp != "-")
-                                        sendUser("324 " + clients[i].nickname + " " + args[j + 1] + " " + tmp, clientSocket);
+
+                                        for (size_t k = 0 ; k < channels[ind_chan].clients_sockets.size();k++)
+                                        sendUser("324 " + clients[i].nickname + " " + args[j + 1] + " " + tmp, channels[ind_chan].clients_sockets[k]);
                                     //   }
                                     // channels[ind_chan].mode_t = true;
                                     // sendUser("324 " + clients[i].nickname + " " + args[j + 1] + " " + args[j + 2][],clientSocket);
@@ -328,6 +330,8 @@ void connect_server_client(glob *stru)
                                     }
                                 }
                             }
+                            else if ( (channels[ind_chan].mode_t == true && srch_is_operator(clients[i].nickname,clientSocket,channels,ind_chan) == -1))
+                                sendUser(":! NOTICE " + args[j + 1] + " :" + channels[ind_chan].name + " :You're not channel operator ", clientSocket);
                             else if (args.size() >= 2 && searchBychannelname(args[j + 1], channels, MAX_CHANNELS) == -1)
                                 sendUser(":ma_server_ma_Walo 403 " + clients[i].nickname + " " + args[j + 1], clientSocket);
                             // else if (args.size() >= 2 && searchBychannelname(args[j + 1], channels, MAX_CHANNELS) != -1 && srch_clnt_chan(clientSocket,channels) == -1)
