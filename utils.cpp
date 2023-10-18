@@ -171,12 +171,21 @@ int srch_is_operator (std::string nickname,const int clientSocket,const Channel*
 		for (size_t i = 0; i < channels[ind].admins_users.size(); i++)
 		{
 			if (nickname == channels[ind].admins_users[i])
-			return (1);
+			return (0);
 		}
 	}
 	return (-1);
 }
 
+int check_is_invited(std::string nickname, const Channel* channels,int ind_chan)
+{
+	for(size_t i = 0; i < channels[ind_chan].invited.size();i++)
+	{
+		if (nickname == channels[ind_chan].invited[i])
+			return (0c);
+	}
+	return (-1);
+}
 void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname)
 {
 	for (size_t i = 0 ;i < num_chan; i++)

@@ -50,6 +50,7 @@ class Channel{
     bool mode_l;
     bool mode_k;
     bool mode_o;
+    std::vector<std::string> invited;
 
 };
 
@@ -74,3 +75,4 @@ int srch_admin_users(std::string nickname,const Channel* channels);
 void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname);
 int srch_is_operator (std::string nickname, const int clientSocket, const Channel* channels, int ind);
 std::string get_modes(const Channel* channels,int ind);
+int check_is_invited(std::string nickname, const Channel* channels,int ind_chan);
