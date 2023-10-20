@@ -63,7 +63,8 @@ void errorUser(const std::string& msg, int clientSocket)
 
 void sendUser(const std::string& msg, int clientSocket)
 {
-	std::string msgError = msg + "\n";
+	std::string msgError = msg + "\r\n";
+	std::cout << msgError << std::endl << std::endl;
 	send(clientSocket, msgError.c_str(), msgError.length(), 0);
 	return ;
 }
@@ -121,6 +122,7 @@ void create_channel(const int clientSocket,Channel *channels,const Client *clien
 		sendUser("Channel " + name + " Created",clientSocket);
 		channels[channel_index].lmt = 100000;
 		channels[channel_index].limit = "";
+		channels[channel_index].password = "";
 		channels[channel_index].mode_i = false;
 		channels[channel_index].mode_t = false;
 		channels[channel_index].mode_k = false;
@@ -182,7 +184,7 @@ int check_is_invited(std::string nickname, const Channel* channels,int ind_chan)
 	for(size_t i = 0; i < channels[ind_chan].invited.size();i++)
 	{
 		if (nickname == channels[ind_chan].invited[i])
-			return (0c);
+			return (0);
 	}
 	return (-1);
 }

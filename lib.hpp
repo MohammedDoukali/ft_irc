@@ -42,6 +42,7 @@ class Channel{
     std::vector<std::string> admins_users;
     std::string name;
     std::string topic;
+    std::string password;
     int index;
     int lmt;
     std::string limit;
