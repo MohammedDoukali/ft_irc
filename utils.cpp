@@ -64,7 +64,7 @@ void errorUser(const std::string& msg, int clientSocket)
 void sendUser(const std::string& msg, int clientSocket)
 {
 	std::string msgError = msg + "\r\n";
-	std::cout << msgError << std::endl << std::endl;
+	// std::cout << msgError << std::endl << std::endl;
 	send(clientSocket, msgError.c_str(), msgError.length(), 0);
 	return ;
 }
@@ -72,7 +72,7 @@ void sendUser(const std::string& msg, int clientSocket)
 void sendUser2(const std::string& msg, int clientSocket, std::string name)
 {
 	std::string msgError = "PRIVMSG " + name + " :" + msg + "\n";
-	std::cout << msgError << std::endl;
+	// std::cout << msgError << std::endl;
 	// std::cout <<"Send  --> [" << msg << "]" << std::endl;
 	send(clientSocket, msgError.c_str(), msgError.length(), 0);
 	return ;
@@ -136,7 +136,7 @@ int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
 		if (channels[ind].clients_sockets[i] == clientSocket)
 		return (i);
 	}
-	return (-0);
+	return (-1);
 }
 std::string get_modes(const Channel* channels,int ind)
 {
