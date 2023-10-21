@@ -191,7 +191,7 @@ int check_is_invited(std::string nickname, const Channel* channels,int ind_chan)
 }
 void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname)
 {
-	for (size_t i = 0 ;i < num_chan; i++)
+	for (int i = 0 ;i < num_chan; i++)
 	{
 		std::ostringstream oss;
    		oss << channels[i].clients_sockets.size();
@@ -208,15 +208,13 @@ int srch_admin_users(std::string nickname,const Channel* channels)
 	}
 	return (-1);
 }
-std::string extract_message(std::vector<std::string> args,int ind)
-{
-	std::string mssg = "";
-	for (int indd = ind; indd  < args.size(); indd++)
-	{
-		mssg += args[indd];
-		mssg += " ";
-	}
-	return(mssg);
+std::string extract_message(std::vector<std::string> args, int ind) {
+    std::string mssg = "";
+    for (int indd = ind; indd < static_cast<int>(args.size()); indd++) {
+        mssg += args[indd];
+        mssg += " ";
+    }
+    return mssg;
 }
 
 std::string addRandomNumber(const std::string& input) {
@@ -229,4 +227,15 @@ std::string addRandomNumber(const std::string& input) {
     std::string randomNumStr = oss.str();
 
     return input + randomNumStr;
+}
+
+void remove_admin(std::string nickname, const Channel * channels,int ind)
+{
+	  for (std::vector<std::string>::iterator it = channels[ind].admins_users.begin(); it != channels[ind].admins_users.end(); /* No increment here */) {
+        if (*it == nickname) {
+            it = channels[ind].admins_users.erase(it);  
+        } else {
+            ++it; 
+        }
+    }
 }

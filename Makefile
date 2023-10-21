@@ -1,6 +1,6 @@
 CC = c++
-#CPPFLAGS = -Wall -Wextra -Werror -std=c++98
-CPPFLAGS = -std=c++98
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98
+# CPPFLAGS = -std=c++98
 NAME = ircserv
 SRC = main.cpp utils.cpp
 OBJ = $(SRC:.cpp=.o)

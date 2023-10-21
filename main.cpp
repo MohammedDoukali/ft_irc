@@ -18,8 +18,6 @@ void connect_server_client(glob *stru)
 {
     int max_fds_socket;
     char buffer[MAX_BUFFER_SIZE];
-    int chan_indx = 0;
-
     stru->num_clients = 0;
     stru->nm_channels = 0;
 
@@ -105,7 +103,7 @@ void connect_server_client(glob *stru)
                     std::cout << "Message from client " << i << ": " << message << "\n";
                     std::vector<std::string> args = split_str(message, ' ');
 
-                    for (int j = 0; j < args.size() - 1; j++)
+                    for (size_t j = 0; j < args.size() - 1; j++)
                     {
                         if (args[j] == "CAP")
                             sendUser("CAP * LS", clientSocket);
@@ -175,11 +173,12 @@ void connect_server_client(glob *stru)
                             sendUser("PONG\r\n", clientSocket);
                         if (args[j] == "PRIVMSG")
                         {
-                            std::cout << "sit tl3ab" << std::endl;
+                            // std::cout << "sit tl3ab" << std::endl;
                             std::string mssg;
                             size_t pos = message.find(':');
                             if (pos != std::string::npos)
-                                mssg = message.substr(pos + 1);
+                                mssg = message.substr(pos);
+                            std::cout << "<" + mssg + ">"<< std::endl;
                             std::string privmsgCommand = clients[i].nickname + " : " + mssg;
                             int ind = searchByNickName(args[j + 1], clients, stru->num_clients);
                             if (args[j + 1][0] == '#')
@@ -194,9 +193,14 @@ void connect_server_client(glob *stru)
                                 }
                             }
                             else if (ind != -1)
-                                sendUser(":" + clients[i].nickname + " PRIVMSG " + clients[i].nickname + " :" + mssg, clients[ind].socket);
+                            {
+                                std::cout << "Asasasasa" << std::endl;
+                                mssg = mssg.substr(0,mssg.find_last_of(" "));
+                                std::cout << "<" << mssg << ">" << std::endl;
+                                sendUser(":" + clients[i].nickname +  "!~" + clients[ind].username + "@" + clients[i].username + " PRIVMSG " + args[j + 1] + " " +  mssg, clients[ind].socket);
+                            }
                             else
-                                sendUser("411 User: " + args[j + 1] + " Not Found !\r\n", clientSocket);
+                                 sendUser("User : " + args[j + 1] + " No such nick",clientSocket);
                         }
                         if (args[j] == "LIST")
                             list_response(channels, clientSocket, stru->nm_channels, clients[i].nickname);
@@ -206,7 +210,7 @@ void connect_server_client(glob *stru)
                             if (ind_chan == -1)
                                 sendUser("403 " + clients[i].nickname + " " + args[j + 2], clientSocket);
                             else if (searchByNickName(args[j + 1], clients, stru->num_clients) == -1)
-                                sendUser("411 User: " + args[j + 1] + " Not Found !\r\n", clientSocket);
+                                 sendUser("401 " + clients[i].nickname + " " +  args[j + 1] + " :No such nick/channel",clientSocket);
                             else if (srch_is_operator(clients[i].nickname, clientSocket, channels, ind_chan) == -1)
                                 sendUser(":! NOTICE " + args[j + 2] + " :" + channels[ind_chan].name + " :You're not channel operator ", clientSocket);
                             else
@@ -215,7 +219,6 @@ void connect_server_client(glob *stru)
                                 sendUser("341 " + clients[i].nickname + " " + args[j + 1] + " " + args[j + 2], clientSocket);
                                 sendUser(":" + clients[i].nickname + " INVITE " + args[j + 1] + " :" + args[j + 2], clients[searchByNickName(args[j + 1], clients, stru->num_clients)].socket);
                                 channels[ind_chan].invited.push_back(args[j + 1]);
-                                // sendUser(clients[i].nickname + " invitees you to " + args[j + 2],clients[searchByNickName(args[j + 1],clients,stru->num_clients)].socket);
                             }
                         }
                         if (args[j] == "MODE")
@@ -252,7 +255,7 @@ void connect_server_client(glob *stru)
             
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 'l')
                                         {
-                                            int flag = 3;
+                                            size_t flag = 3;
                                             std::string tmp_arg = args[j + 2].substr(1,p-1);
                                             if (tmp_arg.find('k') != std::string::npos && tmp_arg.find('o') != std::string::npos)
                                                 flag += 2;
@@ -279,7 +282,7 @@ void connect_server_client(glob *stru)
                                         }
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 'k')
                                         {
-                                            int flag = 3;
+                                            size_t flag = 3;
                                             std::string tmp_arg = args[j + 2].substr(1,p-1);
                                             if (tmp_arg.find('l') != std::string::npos && tmp_arg.find('o') != std::string::npos)
                                                 flag += 2;
@@ -322,15 +325,12 @@ void connect_server_client(glob *stru)
                                         }
                                         else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '-' ) && args[j + 2][p] == 'o')
                                         {
-                                            int flag = 3;
+                                            size_t flag = 3;
                                             std::string tmp_arg = args[j + 2].substr(1,p-1);
-                                            // if (args[j + 2][0] == '+')
-                                            // {
                                             if (tmp_arg.find('k') != std::string::npos && tmp_arg.find('l') != std::string::npos)
                                                 flag += 2;
                                             else if (tmp_arg.find('l') != std::string::npos || tmp_arg.find('k') != std::string::npos)
                                                 flag += 1;
-                                            // }
                                             std::cout << ":" + tmp_arg  + " Flag o: " << flag << std::endl;
                                             if (args.size() > flag && searchByNickName(args[j + flag],clients,stru->num_clients) == -1)
                                                 sendUser("401 " + clients[i].nickname + " " +  args[j + flag] + " :No such nick/channel",clientSocket);
@@ -341,7 +341,10 @@ void connect_server_client(glob *stru)
                                             else
                                             {
                                               if (args[j + 2][0] == '-' )
+                                              {
                                                channels[ind_chan].tmp_oprt = args[j + 3];
+                                                remove_admin(args[j + 3],channels,ind_chan);
+                                              }
                                               else
                                               {
                                                channels[ind_chan].admins_users.push_back(args[j + flag]);
@@ -358,9 +361,8 @@ void connect_server_client(glob *stru)
                                             size_t l = tmp.find('l');
                                             size_t k = tmp.find('k');
                                             size_t o = tmp.find('o');
-                                            
 
-                                            for ( int i = 0; i < 3;i++)
+                                            for ( int i = 0; i < 3; i++)
                                             {
                                             if (l < k && l < o  && tmp.find('l') != std::string::npos)
                                             {
@@ -376,7 +378,6 @@ void connect_server_client(glob *stru)
                                                 tmp += " ";
                                                 tmp += channels[ind_chan].password;                                              
                                                 k = std::string::npos;
-
                                             }
                                             else if ( o < l && o < k && tmp.find('o') != std::string::npos)
                                             {
@@ -400,18 +401,15 @@ void connect_server_client(glob *stru)
                              
                                 }
                                 else
-                                {
-                                    // sendUser(":ma_server_ma_Walo 324 zwita " + args[j + 1] + " " + args[j + 2],clientSocket);
                                     sendUser("472 " + clients[i].nickname + " " + args[j + 2] + " :Unknown mode", clientSocket);
-                                }
                             }
                         }
-                        if (args[j] == "WHO")
-                        {
-                            std::cout << " dkheel who" << std::endl;
-                            sendUser("352 zwita #chan ~simo-dk simo-dk ma_server_ma_Walo zwita O :1 mohammed", clientSocket);
-                            sendUser("315 zwita #chan :End of /WHO list", clientSocket);
-                        }
+                        // if (args[j] == "WHO")
+                        // {
+                        //     // std::cout << " dkheel who" << std::endl;
+                        //     // sendUser("352 zwita #chan ~simo-dk simo-dk ma_server_ma_Walo zwita O :1 mohammed", clientSocket);
+                        //     sendUser("315 " + " :End of /WHO list", clientSocket);
+                        // }
                         if (args[j] == "TOPIC")
                         {
                             std::cout << args.size() << std::endl;
@@ -435,9 +433,6 @@ void connect_server_client(glob *stru)
                                 sendUser(":! NOTICE " + args[j + 1] + " :" + channels[ind_chan].name + " :You're not channel operator ", clientSocket);
                             else if (args.size() >= 2 && searchBychannelname(args[j + 1], channels, MAX_CHANNELS) == -1)
                                 sendUser("403 " + clients[i].nickname + " " + args[j + 1], clientSocket);
-                            // else if (args.size() >= 2 && searchBychannelname(args[j + 1], channels, MAX_CHANNELS) != -1 && srch_clnt_chan(clientSocket,channels) == -1)
-                            // sendUser(":ma_server_ma_Walo 442 " + clients[i].nickname + " " + args[j + 1] + " :You're not on that channel",clientSocket);
-
                             else if (args.size() == 1)
                             {
                                 sendUser("*** TOPIC Not enough parameters", clientSocket);
@@ -455,7 +450,7 @@ void connect_server_client(glob *stru)
                                 ind_chan = stru->nm_channels;
                                 stru->nm_channels++;
                             }
-                            if (channels[ind_chan].lmt != -1 && channels[ind_chan].clients_sockets.size() >= channels[ind_chan].lmt)
+                            if (channels[ind_chan].clients_sockets.size() >= channels[ind_chan].lmt)
                             {
                                 std::cout << "limit mn dakhel : " << channels[ind_chan].lmt << " size:" << channels[ind_chan].clients_sockets.size() << std::endl;
                                 sendUser("471 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+i)", clientSocket);
@@ -466,7 +461,7 @@ void connect_server_client(glob *stru)
                             }
                             else if ((channels[ind_chan].mode_k == true && (args.size() < 3 || channels[ind_chan].password != args[j + 2])))
                                 sendUser("475 " + clients[i].nickname + " " + args[j + 1] + " :Cannot join channel (+k)", clientSocket);
-                            else if ((channels[ind_chan].mode_k == false || (channels[ind_chan].mode_k == true && channels[ind_chan].password == args[j + 2])) && (channels[ind_chan].lmt == -1 || (channels[ind_chan].lmt > -1 && channels[ind_chan].clients_sockets.size() < channels[ind_chan].lmt)))
+                            else if ((channels[ind_chan].mode_k == false || (channels[ind_chan].mode_k == true && channels[ind_chan].password == args[j + 2])) && channels[ind_chan].clients_sockets.size() < channels[ind_chan].lmt)
                             {
                                 std::cout << "wax dkhlti hna-----------------" << std::endl;
                                 channels[ind_chan].clients_sockets.push_back(clients[i].socket);
@@ -490,8 +485,8 @@ void connect_server_client(glob *stru)
                                 for (std::size_t l = 0; l < channels[ind_chan].clients_sockets.size(); l++)
                                 {
                                     std::cout << " chan " << channels[ind_chan].clients_sockets.size() << std::endl;
-                                    sendUser2(clients[i].nickname + " Has Joigned " + channels[ind_chan].name, channels[ind_chan].clients_sockets[l], channels[ind_chan].name);
-                                    // sendUser(":ma_server_ma_Walo JOIN " + args[i + 1],channels[ind_chan].clients_sockets[l]);
+                                    // sendUser2(clients[i].nickname + " Has Joigned " + channels[ind_chan].name, channels[ind_chan].clients_sockets[l], channels[ind_chan].name);
+                                    sendUser("JOIN " + args[j + 1],channels[ind_chan].clients_sockets[l]);
                                 }
                                 sendUser(":ma_server_ma_Walo 366 " + clients[i].nickname + " " + args[j + 1] + " :End of JOIN", clientSocket);
                                 // sendUser(":ma_server_ma_waloo 353 "  + clients[i].nickname + " = " + args[j + 1] + " :@username1 username2 username3",clientSocket);

@@ -39,12 +39,12 @@ struct glob
 class Channel{
     public:
     std::vector<int> clients_sockets;
-    std::vector<std::string> admins_users;
+    mutable std::vector<std::string> admins_users;
     std::string name;
     std::string topic;
     std::string password;
     int index;
-    int lmt;
+    size_t lmt;
     std::string limit;
     std::string tmp_oprt;
     bool mode_i;
@@ -78,3 +78,4 @@ void list_response(const Channel* channels,int clientSocket,int num_chan,std::st
 int srch_is_operator (std::string nickname, const int clientSocket, const Channel* channels, int ind);
 std::string get_modes(const Channel* channels,int ind);
 int check_is_invited(std::string nickname, const Channel* channels,int ind_chan);
+void remove_admin(std::string nickname, const Channel * channels,int ind);
