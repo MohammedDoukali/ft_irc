@@ -123,6 +123,7 @@ void create_channel(const int clientSocket,Channel *channels,const Client *clien
 		channels[channel_index].lmt = 100000;
 		channels[channel_index].limit = "";
 		channels[channel_index].password = "";
+		channels[channel_index].tmp_oprt = "";
 		channels[channel_index].mode_i = false;
 		channels[channel_index].mode_t = false;
 		channels[channel_index].mode_k = false;
@@ -146,10 +147,10 @@ std::string get_modes(const Channel* channels,int ind)
 			mode += "i";
 		if (channels[ind].mode_t == true)
 			mode += "t";
-		if (channels[ind].mode_k == true)
-			mode += "k";
 		if (channels[ind].mode_l == true)
 			mode += "l";
+		if (channels[ind].mode_k == true)
+			mode += "k";
 		if (channels[ind].mode_o == true)
 			mode += "o";
 	return (mode);

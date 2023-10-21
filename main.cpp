@@ -249,15 +249,22 @@ void connect_server_client(glob *stru)
                                     {
                                         if (args[j + 2][p] != 'i' && args[j + 2][p] != 't' && args[j + 2][p] != 'k' && args[j + 2][p] != 'l' && args[j + 2][p] != 'o')
                                             sendUser("472 " + clients[i].nickname + " " + args[j + 2][p] + " :Unknown mode", clientSocket);
-                                        // else if (tmp.find(args[j + 2][p]) == std::string::npos)
-                                        //     tmp += args[j + 2][p];
+            
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 'l')
                                         {
-                                            if (args.size() == 4 && args[j + 2][0] == '+')
+                                            int flag = 3;
+                                            std::string tmp_arg = args[j + 2].substr(1,p-1);
+                                            if (tmp_arg.find('k') != std::string::npos && tmp_arg.find('o') != std::string::npos)
+                                                flag += 2;
+                                            else if (tmp_arg.find('k') != std::string::npos || tmp_arg.find('o') != std::string::npos)
+                                                flag += 1;
+                                            std::cout << ":" + tmp_arg  + " Flag l: " << flag << std::endl;
+                                            if (args.size() > flag && args[j + 2][0] == '+')
                                             {
-                                                std::istringstream limiter(args[j + 3]);
+                                                // std::cout << "yak makdkholx hna " <<std::endl;
+                                                std::istringstream limiter(args[j + flag]);
                                                 limiter >> channels[ind_chan].lmt;
-                                                channels[ind_chan].limit = args[j + 3];
+                                                channels[ind_chan].limit = args[j + flag];
                                                 channels[ind_chan].mode_l = true;
                                                 tmp += args[j + 2][p];
                                             }
@@ -267,26 +274,34 @@ void connect_server_client(glob *stru)
                                                 channels[ind_chan].mode_l = false;
                                                 tmp += args[j + 2][p];
                                             }
-                                            else if (args.size() == 3 && args[j + 2][0] == '+')
+                                            else if (args.size() <= flag && args[j + 2][0] == '+')
                                                 sendUser("461 " + clients[i].nickname + " +" + args[j + 2][p] + " :Not enough parameters", clientSocket);
                                         }
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 'k')
                                         {
-                                            if (args.size() == 4 && args[j + 2][0] == '+' && channels[ind_chan].mode_k == true)
+                                            int flag = 3;
+                                            std::string tmp_arg = args[j + 2].substr(1,p-1);
+                                            if (tmp_arg.find('l') != std::string::npos && tmp_arg.find('o') != std::string::npos)
+                                                flag += 2;
+                                            else if (tmp_arg.find('l') != std::string::npos || tmp_arg.find('o') != std::string::npos)
+                                                flag += 1;
+                                            std::cout << ":" + tmp_arg  + " Flag k: " << flag << std::endl;
+                                                
+                                            if (args.size() > flag && args[j + 2][0] == '+' && channels[ind_chan].mode_k == true)
                                                 sendUser("696 " + clients[i].nickname + " "  + args[j + 1] + " :Channel key already set",clientSocket);
-                                            else if (args.size() == 4 && args[j + 2][0] == '+')
+                                            else if (args.size() > flag && args[j + 2][0] == '+')
                                             {
                                                 tmp += args[j + 2][p];
                                                 channels[ind_chan].mode_k = true;
-                                                channels[ind_chan].password = args[j + 3];
+                                                channels[ind_chan].password = args[j + flag];
                                             }
                                             else if (args[j + 2][0] == '-')
                                             {
-                                                    std::cout << "yakma dkhlt hna" << std::endl;
+                                                    // std::cout << "yakma dkhlt hna" << std::endl;
                                                     channels[ind_chan].mode_k = false;
                                                     tmp += args[j + 2][p];
                                             }
-                                            else if (args.size() == 3 && args[j + 2][0] == '+')
+                                            else if (args.size() <= flag && args[j + 2][0] == '+')
                                                 sendUser("461 " + clients[i].nickname + " +" + args[j + 2][p] + " :Not enough parameters", clientSocket);
                                         }
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 't')
@@ -299,7 +314,6 @@ void connect_server_client(glob *stru)
                                         }
                                         else if ((args[j + 2][0] == '+' || args[j + 2][0] == '-') && args[j + 2][p] == 'i')
                                         {
-
                                             if (args[j + 2][0] == '-')
                                                 channels[ind_chan].mode_i = false;
                                             else
@@ -308,17 +322,32 @@ void connect_server_client(glob *stru)
                                         }
                                         else if ((args[j + 2][0] == '+'  || args[j + 2][0] == '-' ) && args[j + 2][p] == 'o')
                                         {
-                                   
-                                            if (args.size() == 4 && searchByNickName(args[j + 3],clients,stru->num_clients) == -1)
-                                                sendUser("401 " + clients[i].nickname + " " +  args[j + 3] + " :No such nick/channel",clientSocket);
-                                            else if (args.size() == 4 && srch_clnt_chan(clients[searchByNickName(args[j + 3], clients,stru->num_clients)].socket, channels,ind_chan) == -1)
-                                                sendUser("441 " + clients[i].nickname + " " + args[j + 3] + " " + args[j + 1] + " :They aren't on that channel",clientSocket);
-                                            else if (args.size() == 3 && (args[j + 2][0] == '+' || args[j + 2][0] == '-'))
+                                            int flag = 3;
+                                            std::string tmp_arg = args[j + 2].substr(1,p-1);
+                                            // if (args[j + 2][0] == '+')
+                                            // {
+                                            if (tmp_arg.find('k') != std::string::npos && tmp_arg.find('l') != std::string::npos)
+                                                flag += 2;
+                                            else if (tmp_arg.find('l') != std::string::npos || tmp_arg.find('k') != std::string::npos)
+                                                flag += 1;
+                                            // }
+                                            std::cout << ":" + tmp_arg  + " Flag o: " << flag << std::endl;
+                                            if (args.size() > flag && searchByNickName(args[j + flag],clients,stru->num_clients) == -1)
+                                                sendUser("401 " + clients[i].nickname + " " +  args[j + flag] + " :No such nick/channel",clientSocket);
+                                            else if (args.size() > flag && srch_clnt_chan(clients[searchByNickName(args[j + flag], clients,stru->num_clients)].socket, channels,ind_chan) == -1)
+                                                sendUser("441 " + clients[i].nickname + " " + args[j + flag] + " " + args[j + 1] + " :They aren't on that channel",clientSocket);
+                                            else if ((args.size() <= flag && (args[j + 2][0] == '+')) || (args.size() <= 3 && (args[j + 2][0] == '-')) )
                                                 sendUser("461 " + clients[i].nickname + " +" + args[j + 2][p] + " :Not enough parameters", clientSocket);
                                             else
                                             {
-                                               channels[ind_chan].admins_users.push_back(args[j + 3]);
-                                               tmp += args[j + 2][p];
+                                              if (args[j + 2][0] == '-' )
+                                               channels[ind_chan].tmp_oprt = args[j + 3];
+                                              else
+                                              {
+                                               channels[ind_chan].admins_users.push_back(args[j + flag]);
+                                               channels[ind_chan].tmp_oprt = args[j + flag];
+                                              }
+                                              tmp += args[j + 2][p];
                                             }
                                         }
                                         if (p == (args[j + 2].size() - 1)&& args.size() > 3 && (args[j + 2][0] == '+' || args[j + 2][0] == '-')
@@ -326,21 +355,47 @@ void connect_server_client(glob *stru)
                                             ||  (tmp.find('l') != std::string::npos && args[j + 2][0] == '+'))
                                         )
                                         {
-                                            tmp += " ";
-                                            tmp += args[j + 3];
-                                            std::cout << args[j + 3] << std::endl;
+                                            size_t l = tmp.find('l');
+                                            size_t k = tmp.find('k');
+                                            size_t o = tmp.find('o');
                                             
+
+                                            for ( int i = 0; i < 3;i++)
+                                            {
+                                            if (l < k && l < o  && tmp.find('l') != std::string::npos)
+                                            {
+                                                if(args[j + 2][0] == '+')
+                                                {
+                                                tmp += " ";
+                                                tmp += channels[ind_chan].limit;
+                                                }
+                                                l = std::string::npos;
+                                            }
+                                            else if (k < l && k < o && tmp.find('k') != std::string::npos)
+                                            {
+                                                tmp += " ";
+                                                tmp += channels[ind_chan].password;                                              
+                                                k = std::string::npos;
+
+                                            }
+                                            else if ( o < l && o < k && tmp.find('o') != std::string::npos)
+                                            {
+                                                tmp += " ";
+                                                if (args[j + 2][0] == '+')
+                                                 tmp += channels[ind_chan].tmp_oprt;
+                                                else 
+                                                tmp += args[j + 3];
+                                                std::cout << "hada tmp:"  + channels[ind_chan].tmp_oprt << std::endl;                                         
+                                                o = std::string::npos;
+                                            }
+                                            }
                                         }
                                     }
                                     if (tmp != "+" && tmp != "-")
 
                                         for (size_t k = 0; k < channels[ind_chan].clients_sockets.size(); k++)
                                         {
-                                            // if ((tmp.find('l') == std::string::npos) && (tmp.find('o') == std::string::npos) && (tmp.find('k') == std::string::npos))
                                             sendUser(":<" + clients[i].nickname + "> MODE " + args[j + 1] + " " + tmp , channels[ind_chan].clients_sockets[k]);
-                                        // else
-                                        //     sendUser(":<" + clients[i].nickname + "> MODE " + args[j + 1] + " " + tmp + " " + args[j + 3], channels[ind_chan].clients_sockets[k]);
-                                            // sendUser("324 " + clients[i].nickname + " " + args[j + 1] + " " + tmp, channels[ind_chan].clients_sockets[k]);
                                         }
                              
                                 }
