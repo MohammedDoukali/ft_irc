@@ -79,3 +79,6 @@ int srch_is_operator (std::string nickname, const int clientSocket, const Channe
 std::string get_modes(const Channel* channels,int ind);
 int check_is_invited(std::string nickname, const Channel* channels,int ind_chan);
 void remove_admin(std::string nickname, const Channel * channels,int ind);
+void removeClient(std::vector<int>& clients_sockets, int clientSocket);
+void chng_nick_admin(std::string nickname, const Channel * channels,int ind,std::string new_nick);
+// void removeAdmin(Channel *channels, Client *clients, int client_index, int channel_index);

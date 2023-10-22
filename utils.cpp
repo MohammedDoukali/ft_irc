@@ -239,3 +239,24 @@ void remove_admin(std::string nickname, const Channel * channels,int ind)
         }
     }
 }
+
+void chng_nick_admin(std::string nickname, const Channel * channels,int ind,std::string new_nick)
+{
+      for (size_t l = 0 ;l < channels[ind].admins_users.size();l++)
+	  {
+		if (channels[ind].admins_users[l] == nickname)
+			channels[ind].admins_users[l] = new_nick;
+	  }
+    
+}
+void removeClient(std::vector<int>& clients_sockets, int clientSocket)
+{
+    for (std::vector<int>::iterator it = clients_sockets.begin(); it != clients_sockets.end(); /* No increment here */) {
+        if (*it == clientSocket) {
+			std::cout << "socketa:" << *it << std::endl;
+            it = clients_sockets.erase(it);  
+        } else {
+            ++it; 
+        }
+    }
+}
