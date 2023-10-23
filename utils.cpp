@@ -167,7 +167,7 @@ std::string get_modes(const Channel* channels,int ind)
 // 	return -1;
 // }
 
-int srch_is_operator (std::string nickname,const int clientSocket,const Channel* channels,int ind)
+int srch_is_operator(std::string nickname,const int clientSocket,const Channel* channels,int ind)
 {
 	if (srch_clnt_chan(clientSocket,channels,ind) != -1)
 	{
@@ -199,11 +199,11 @@ void list_response(const Channel* channels,int clientSocket,int num_chan,std::st
 		sendUser("322 " + nickname + " " + channels[i].name + " " + nm_users + " " + channels[i].topic,clientSocket);
 	}
 }
-int srch_admin_users(std::string nickname,const Channel* channels)
+int srch_admin_users(std::string nickname,const Channel* channels,int ind)
 {
-	for (size_t i = 0; i < channels->admins_users.size();i++)
+	for (size_t i = 0; i < channels[ind].admins_users.size();i++)
 	{
-		if (nickname == channels->admins_users[i])
+		if (nickname == channels[ind].admins_users[i])
 			return i;
 	}
 	return (-1);
@@ -259,4 +259,31 @@ void removeClient(std::vector<int>& clients_sockets, int clientSocket)
             ++it; 
         }
     }
+}
+
+int srch_vctor_int(const int clientSocket,std::vector<int> users)
+{
+    for (size_t i = 0; i < users.size(); i++)
+    {
+        if (clientSocket == users[i])
+            return (i);
+    }
+    return (-1);
+}
+
+std::vector<int> inform_users(const int clientSocket,Channel *channels, int num_channel)
+{
+    std::vector<int> all_users;
+    for (int i = 0; i < num_channel; i++)
+    {
+        if (srch_clnt_chan(clientSocket, channels, i) != -1)
+        {
+            for (size_t k = 0; k < channels[i].clients_sockets.size(); k++)
+            {
+                if (srch_vctor_int(channels[i].clients_sockets[k],all_users) == -1)
+                    all_users.push_back(channels[i].clients_sockets[k]);
+            }
+        }
+    }
+    return(all_users);
 }

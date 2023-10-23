@@ -60,7 +60,6 @@ void ft_error(int ind, const std::string &str);
 int countWords(const std::string& str);
 void remove_spaces(std::string& str);
 std::vector<std::string> split_str(std::string str, char sep);
-// int checkArg(const std::string str, int clientSocket);
 void errorUser(const std::string& msg, int clientSocket);
 int checkArg(const std::vector<std::string> &arg, int clientSocket);
 void sendUser(const std::string& msg, int clientSocket);
@@ -73,7 +72,7 @@ int searchByNickName(const std::string& target, const Client* clients, int numCl
 void create_channel(const int clientSocket,Channel *channels,const Client *clients, std::string name, const int i, int channel_index);
 std::string extract_message(std::vector<std::string> args, int ind);
 int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind);
-int srch_admin_users(std::string nickname,const Channel* channels);
+int srch_admin_users(std::string nickname,const Channel* channels,int ind);
 void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname);
 int srch_is_operator (std::string nickname, const int clientSocket, const Channel* channels, int ind);
 std::string get_modes(const Channel* channels,int ind);
@@ -81,4 +80,6 @@ int check_is_invited(std::string nickname, const Channel* channels,int ind_chan)
 void remove_admin(std::string nickname, const Channel * channels,int ind);
 void removeClient(std::vector<int>& clients_sockets, int clientSocket);
 void chng_nick_admin(std::string nickname, const Channel * channels,int ind,std::string new_nick);
+int srch_vctor_int(const int clientSocket,std::vector<int> users);
+std::vector<int> inform_users(const int clientSocket,Channel *channels, int num_channel);
 // void removeAdmin(Channel *channels, Client *clients, int client_index, int channel_index);
