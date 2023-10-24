@@ -112,7 +112,7 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 void create_channel(Channel *channels, std::string name,int channel_index)
 {
 
-		channels[channel_index].index = channel_index;
+		channels[channel_index].index = 1;
 		channels[channel_index].name = name;
 		// channels[channel_index].admins_users.push_back(clients[i].nickname);
 		//sendUser("Channel " + name + " Created",clientSocket);
@@ -180,6 +180,7 @@ void list_response(const Channel* channels,int clientSocket,int num_chan,std::st
 		std::ostringstream oss;
    		oss << channels[i].clients_sockets.size();
     	std::string nm_users = oss.str();
+		if (channels[i].clients_sockets.size() != 0)
 		sendUser("322 " + nickname + " " + channels[i].name + " " + nm_users + " " + channels[i].topic,clientSocket);
 	}
 }
