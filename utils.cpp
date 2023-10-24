@@ -27,7 +27,6 @@ void remove_spaces(std::string& str) {
             isSpace = false;
         }
     }
-//    std::cout << "x7aal mn klma" << wordCount << std::endl;
     str = result;
 }
 
@@ -110,16 +109,14 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 	return -1;
 }
 
-void create_channel(const int clientSocket,Channel *channels,const Client *clients, std::string name, const int i, int channel_index)
+void create_channel(Channel *channels, std::string name,int channel_index)
 {
 
 		channels[channel_index].index = channel_index;
 		channels[channel_index].name = name;
-	//	channels[channel_index].clients_sockets.push_back(clients[i].socket);
-	//	std::cout << "------------------------------------" << std::endl;
-		channels[channel_index].admins_users.push_back(clients[i].nickname);
+		// channels[channel_index].admins_users.push_back(clients[i].nickname);
+		//sendUser("Channel " + name + " Created",clientSocket);
 		channels[channel_index].topic = "";
-		sendUser("Channel " + name + " Created",clientSocket);
 		channels[channel_index].lmt = 100000;
 		channels[channel_index].limit = "";
 		channels[channel_index].password = "";
@@ -128,8 +125,9 @@ void create_channel(const int clientSocket,Channel *channels,const Client *clien
 		channels[channel_index].mode_t = false;
 		channels[channel_index].mode_k = false;
 		channels[channel_index].mode_l = false;
-		channels[channel_index].mode_o = false;
+
 }
+
 int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
 {
 	for (size_t i = 0; i < channels[ind].clients_sockets.size(); i++)
@@ -142,7 +140,6 @@ int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
 std::string get_modes(const Channel* channels,int ind)
 {
 	std::string mode = " +";
-
 		if (channels[ind].mode_i == true)
 			mode += "i";
 		if (channels[ind].mode_t == true)
@@ -151,21 +148,8 @@ std::string get_modes(const Channel* channels,int ind)
 			mode += "l";
 		if (channels[ind].mode_k == true)
 			mode += "k";
-		if (channels[ind].mode_o == true)
-			mode += "o";
 	return (mode);
 }
-
-// int check_valid_mode(std::string mode)
-// {
-// 	if ((mode[0] == '+' || mode[0] == '-')
-// 	&& mode.find_first_not_of("itkol") == std::string::npos)
-// 	{
-// 		if ()
-// 	}
-	
-// 	return -1;
-// }
 
 int srch_is_operator(std::string nickname,const int clientSocket,const Channel* channels,int ind)
 {
@@ -240,14 +224,24 @@ void remove_admin(std::string nickname, const Channel * channels,int ind)
     }
 }
 
+
+void expired_invite(std::string nickname, const Channel * channels,int ind)
+{
+	  for (std::vector<std::string>::iterator it = channels[ind].invited.begin(); it != channels[ind].invited.end(); /* No increment here */) {
+        if (*it == nickname)
+            it = channels[ind].invited.erase(it);  
+		else
+            ++it; 
+    }
+}
+
 void chng_nick_admin(std::string nickname, const Channel * channels,int ind,std::string new_nick)
 {
       for (size_t l = 0 ;l < channels[ind].admins_users.size();l++)
 	  {
 		if (channels[ind].admins_users[l] == nickname)
 			channels[ind].admins_users[l] = new_nick;
-	  }
-    
+	  }  
 }
 void removeClient(std::vector<int>& clients_sockets, int clientSocket)
 {
@@ -255,9 +249,9 @@ void removeClient(std::vector<int>& clients_sockets, int clientSocket)
         if (*it == clientSocket) {
 			std::cout << "socketa:" << *it << std::endl;
             it = clients_sockets.erase(it);  
-        } else {
+        } 
+		else
             ++it; 
-        }
     }
 }
 
@@ -286,4 +280,19 @@ std::vector<int> inform_users(const int clientSocket,Channel *channels, int num_
         }
     }
     return(all_users);
+}
+
+
+std::vector<std::string> multi_chaines(const std::string& input)
+{
+    std::vector<std::string> result;
+    std::istringstream ss(input);
+    std::string token;
+
+    while (std::getline(ss, token, ','))
+	    result.push_back(token);
+	for (size_t i = 0; i < result.size();i++)
+		std::cout << result[i] << "-";
+		std::cout << std::endl;
+    return result;
 }
