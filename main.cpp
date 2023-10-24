@@ -442,9 +442,9 @@ void connect_server_client(glob *stru)
                         if (args[j] == "JOIN" && args[j + 1][0] == '#')
                         {
                             std::vector<std::string> chaines = multi_chaines(args[j + 1]);
-                            for (size_t len = 0;len < chainescanf_l);len++)
+                            for (size_t len = 0;len < chaines.size();len++)
                             {
-                                args[j + 1] = chainescanf_l[len];
+                                args[j + 1] = chaines[len];
                                 int ind_chan = searchBychannelname(args[j + 1], channels, stru->nm_channels);
                                 if (ind_chan == -1 ||  channels[ind_chan].clients_sockets.size() == 0)
                                 {
