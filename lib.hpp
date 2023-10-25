@@ -1,7 +1,10 @@
+#ifndef LIB_HPP
+#define LIB_HPP
 #include <iostream>
 #include <cstdlib>
 #include <cstring>
 #include <string>
+#include <fcntl.h>
 #include <sstream>
 #include <unistd.h>
 #include <sys/types.h>
@@ -55,25 +58,20 @@ class Channel{
 
 };
 
+// UTILS // 
 void ft_error(int ind, const std::string &str);
-int countWords(const std::string& str);
 void remove_spaces(std::string& str);
 std::vector<std::string> split_str(std::string str, char sep);
-void errorUser(const std::string& msg, int clientSocket);
-int checkArg(const std::vector<std::string> &arg, int clientSocket);
 void sendUser(const std::string& msg, int clientSocket);
-void sendUser2(const std::string& msg, int clientSocket, std::string name);
 int searchByUsername(const std::string& target, const Client* clients, int numClients);
 int searchBychannelname(const std::string &channel_name, const Channel* channels, int num_channels);
-void create_channel(const std::string &channel_name);
-std::string addRandomNumber(const std::string& input);
 int searchByNickName(const std::string& target, const Client* clients, int numClients);
 void create_channel(Channel *channels, std::string name, int channel_index);
 std::string extract_message(std::vector<std::string> args, int ind);
 int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind);
 int srch_admin_users(std::string nickname,const Channel* channels,int ind);
-void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname);
 int srch_is_operator (std::string nickname, const int clientSocket, const Channel* channels, int ind);
+void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname);
 std::string get_modes(const Channel* channels,int ind);
 int check_is_invited(std::string nickname, const Channel* channels,int ind_chan);
 void remove_admin(std::string nickname, const Channel * channels,int ind);
@@ -84,6 +82,7 @@ std::vector<int> inform_users(const int clientSocket,Channel *channels, int num_
 std::vector<std::string> multi_chaines(const std::string& input);
 void expired_invite(std::string nickname, const Channel * channels,int ind);
 void check_nickname(std::string& nickname);
+// CMDS // 
 void ft_Auth(Client *clients,int i, glob *stru);
 void err_Auth(Client *clients,int i,glob *stru);
 void ft_nick(std::vector<std::string> args,int j,Client *clients,int i,Channel *channels,glob *stru);
@@ -95,3 +94,5 @@ void ft_join(std::vector<std::string> &args,int j,Channel *channels,glob *stru,C
 void ft_quit(glob *stru, Client *clients,int i, Channel *channels);
 void ft_part(std::vector<std::string> &args, Client *clients, int i, glob *stru, Channel *channels, int j);
 void ft_kick(std::vector<std::string> &args, int j, Channel *channels, glob * stru,Client *clients, int i);
+
+#endif

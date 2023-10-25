@@ -26,7 +26,7 @@ void ft_nick(std::vector<std::string> args,int j,Client *clients,int i,Channel *
                 sendUser(":" + old_one + "!~" + clients[i].username + "@" + clients[i].username  + " NICK " + clients[i].nickname, infrm_users[k]);
             }
     }
-    }
+}
 
 void ft_Auth(Client *clients,int i, glob *stru)
 {
@@ -54,6 +54,7 @@ void err_Auth(Client *clients,int i,glob *stru)
     clients[i].status = -1;
     stru->num_clients--;
 }
+
 void ft_msg(std::string &message, Client *clients, int i, std::vector<std::string> args, int j,glob *stru,Channel *channels)
 {
     std::string mssg;
@@ -76,7 +77,7 @@ void ft_msg(std::string &message, Client *clients, int i, std::vector<std::strin
         for (std::size_t k = 0; k < channels[ind2].clients_sockets.size(); k++)
         {
             if (channels[ind2].clients_sockets[k] != clients[i].socket)
-                sendUser(":" + clients[i].nickname + " PRIVMSG " + channels[ind2].name + " :" + mssg, channels[ind2].clients_sockets[k]);
+                sendUser(":" + clients[i].nickname + " PRIVMSG " + channels[ind2].name + " " + mssg, channels[ind2].clients_sockets[k]);
         }
         }
     }
@@ -100,7 +101,7 @@ void ft_invite(std::vector<std::string> args, Channel *channels, glob *stru, Cli
          sendUser("482 " + clients[i].nickname + " " +  channels[ind_chan].name +  " :You're not a channel operator",clients[i].socket);
      else
      {
-         sendUser(":" + clients[i].nickname + ". INVITE " + args[j + 1] + " :" + args[j + 2], clients[i].socket);
+         sendUser(":" + clients[i].nickname + " INVITE " + args[j + 1] + " :" + args[j + 2], clients[i].socket);
          sendUser("341 " + clients[i].nickname + " " + args[j + 1] + " " + args[j + 2], clients[i].socket);
          sendUser(":" + clients[i].nickname + " INVITE " + args[j + 1] + " :" + args[j + 2], clients[searchByNickName(args[j + 1], clients, stru->num_clients)].socket);
          channels[ind_chan].invited.push_back(args[j + 1]);
@@ -146,9 +147,12 @@ void ft_mode(Channel *channels,std::vector<std::string> args,glob *stru, Client 
                     {
                         std::istringstream limiter(args[j + flag]);
                         limiter >> channels[ind_chan].lmt;
-                        channels[ind_chan].limit = args[j + flag];
-                        channels[ind_chan].mode_l = true;
-                        tmp += args[j + 2][p];
+                        if (channels[ind_chan].lmt != 0)
+                        {
+                            channels[ind_chan].limit = std::to_string(channels[ind_chan].lmt);
+                            channels[ind_chan].mode_l = true;
+                            tmp += args[j + 2][p];
+                        }
                     }
                     else if (args[j + 2][0] == '-')
                     {
@@ -304,6 +308,7 @@ void ft_topic (std::vector <std::string> &args, Channel *channels, int j, glob *
 void ft_join(std::vector<std::string> &args,int j,Channel *channels,glob *stru,Client *clients,int i)
 {
      std::vector<std::string> chaines = multi_chaines(args[j + 1]);
+     
     for (size_t len = 0;len < chaines.size();len++)
     {
         int ind_chan = searchBychannelname(chaines[len], channels, stru->nm_channels);

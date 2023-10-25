@@ -117,7 +117,7 @@ void connect_server_client(glob *stru)
                         if (args[j] == "PING")
                             sendUser("PONG\r\n", clientSocket);
                         if (args[j] == "PRIVMSG")
-                          ft_msg(message,clients,i,args,j,stru,channels);
+                           ft_msg(message,clients,i,args,j,stru,channels);
                         if (args[j] == "LIST")
                             list_response(channels, clientSocket, stru->nm_channels, clients[i].nickname);
                         if (args[j] == "INVITE")
@@ -182,6 +182,7 @@ void setup_socket(int port, glob *stru)
     std::cout << "Server listening.. On Port " << port << std::endl;
 
     stru->serverAddr = serverAddr;
+    fcntl(serverSocket, F_SETFL, O_NONBLOCK);
 }
 int main(int ac, char **av)
 {

@@ -9,20 +9,23 @@ void ft_error(int ind, const std::string &str)
      exit(0);
 }
 
-void remove_spaces(std::string& str) {
-    std::string result;
-    bool isSpace = false;
-   int wordCount = 0;
+void remove_spaces(std::string& str)
+{
+	std::string result;
+	bool isSpace = false;
+	int wordCount = 0;
     for (std::size_t i = 0; i < str.length(); ++i) {
-        if (std::isspace(str[i])) {
-            if (!isSpace)
-            {
-                result += ' ';
-                 wordCount++;
-                isSpace = true;
-            }
+    	if (std::isspace(str[i]))
+		{
+    		if (!isSpace)
+    		{
+				result += ' ';
+				wordCount++;
+    		    isSpace = true;
+    		}
         } 
-        else {
+		else
+		{
             result += str[i];
             isSpace = false;
         }
@@ -42,24 +45,6 @@ std::vector<std::string> split_str(std::string str, char sep)
 	return row;
 }
 
-int countWords(const std::string& str)
-{
-	std::istringstream iss(str);
-	int count = 0;
-	std::string word;
-	
-	while (iss >> word)
-		count++;
-	return count;
-}
-
-void errorUser(const std::string& msg, int clientSocket)
-{
-	std::string msgError = "Error : " + msg + "\n";
-	send(clientSocket, msgError.c_str(), msgError.length(), 0);
-	return ;
-}
-
 void sendUser(const std::string& msg, int clientSocket)
 {
 	std::string msgError = msg + "\r\n";
@@ -67,12 +52,7 @@ void sendUser(const std::string& msg, int clientSocket)
 	return ;
 }
 
-void sendUser2(const std::string& msg, int clientSocket, std::string name)
-{
-	std::string msgError = "PRIVMSG " + name + " :" + msg + "\n";
-	send(clientSocket, msgError.c_str(), msgError.length(), 0);
-	return ;
-}
+
 int searchByUsername(const std::string& target, const Client* clients, int numClients)
 {
 	std::string target2 = target;
@@ -108,17 +88,17 @@ int searchBychannelname(const std::string &channel_name, const Channel* channels
 
 void create_channel(Channel *channels, std::string name,int channel_index)
 {
-		channels[channel_index].index = 1;
-		channels[channel_index].name = name;
-		channels[channel_index].topic = "";
-		channels[channel_index].lmt = 100000;
-		channels[channel_index].limit = "";
-		channels[channel_index].password = "";
-		channels[channel_index].tmp_oprt = "";
-		channels[channel_index].mode_i = false;
-		channels[channel_index].mode_t = false;
-		channels[channel_index].mode_k = false;
-		channels[channel_index].mode_l = false;
+	channels[channel_index].index = 1;
+	channels[channel_index].name = name;
+	channels[channel_index].lmt = 100000;
+	channels[channel_index].topic = "";
+	channels[channel_index].limit = "";
+	channels[channel_index].password = "";
+	channels[channel_index].tmp_oprt = "";
+	channels[channel_index].mode_i = false;
+	channels[channel_index].mode_t = false;
+	channels[channel_index].mode_k = false;
+	channels[channel_index].mode_l = false;
 }
 
 int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
@@ -130,6 +110,7 @@ int srch_clnt_chan(const int clientSocket,const Channel* channels,int ind)
 	}
 	return (-1);
 }
+
 std::string get_modes(const Channel* channels,int ind)
 {
 	std::string mode = " +";
@@ -166,6 +147,7 @@ int check_is_invited(std::string nickname, const Channel* channels,int ind_chan)
 	}
 	return (-1);
 }
+
 void list_response(const Channel* channels,int clientSocket,int num_chan,std::string nickname)
 {
 	for (int i = 0 ;i < num_chan; i++)
@@ -177,6 +159,7 @@ void list_response(const Channel* channels,int clientSocket,int num_chan,std::st
 		sendUser("322 " + nickname + " " + channels[i].name + " " + nm_users + " " + channels[i].topic,clientSocket);
 	}
 }
+
 int srch_admin_users(std::string nickname,const Channel* channels,int ind)
 {
 	for (size_t i = 0; i < channels[ind].admins_users.size();i++)
@@ -186,6 +169,7 @@ int srch_admin_users(std::string nickname,const Channel* channels,int ind)
 	}
 	return (-1);
 }
+
 std::string extract_message(std::vector<std::string> args, int ind) {
     std::string mssg = "";
     for (int indd = ind; indd < static_cast<int>(args.size()); indd++) {
@@ -193,18 +177,6 @@ std::string extract_message(std::vector<std::string> args, int ind) {
         mssg += " ";
     }
     return mssg;
-}
-
-std::string addRandomNumber(const std::string& input) {
-    std::srand(static_cast<unsigned int>(std::time(NULL)));
-    
-    int randomNumber = std::rand() % 1000 + 1;
-
-    std::ostringstream oss;
-    oss << randomNumber;
-    std::string randomNumStr = oss.str();
-
-    return input + randomNumStr;
 }
 
 void remove_admin(std::string nickname, const Channel * channels,int ind)
@@ -217,7 +189,6 @@ void remove_admin(std::string nickname, const Channel * channels,int ind)
         }
     }
 }
-
 
 void expired_invite(std::string nickname, const Channel * channels,int ind)
 {
@@ -285,7 +256,6 @@ std::vector<std::string> multi_chaines(const std::string& input)
     std::vector<std::string> result;
     std::istringstream ss(input);
     std::string token;
-
     while (std::getline(ss, token, ','))
 	    result.push_back(token);
     return result;
